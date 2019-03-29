@@ -1,10 +1,9 @@
 import pymcws as mcws
-from pymcws import MediaServer
 import time
 
 # Create the server using access key and credentials
 # Dont forget to replace the example key with one that you can reach
-office = MediaServer("SdYoPV", "readonly", "supersecretpassword")
+office = mcws.get_media_server("AccessKey", "readonly", "supersecretpassword")
 
 # Play an album using a play recipie
 mcws.play_album(office, "Ludovico Einaudi", "I Giorni")
