@@ -1,0 +1,8 @@
+# pipenv
+Pipfile
+Pipfile.lock
+
+# distribution
+build/*
+dist/*
+pymcws.egg*
