@@ -82,10 +82,11 @@ def playback_position(media_server: MediaServer, position: int = None,
 
     position: The position to seek to in milliseconds. If left to none,
               position is returned only.
-    relative: If set to False or None, Playback will jumo to absolute position.
+    relative: If set to False or None, playback will jumo to absolute position.
               If set to True, Position argument will be added or subtracte from
-              current position (seeking)
+              current position (seeking).
     zone:     Target zone for the command.
+    Returns: The playback position after changes.
     """
     relative = '1' if relative else '0'
     payload = {'Position': position, 'Relative': relative, 'Zone': zone.best_identifier(),
@@ -95,6 +96,26 @@ def playback_position(media_server: MediaServer, position: int = None,
     response = transform_unstructured_response(response)
     return int(response["Position"])
 
+
+def playback_volume(media_server: MediaServer, level: float = None,
+                    relative: bool = False, zone: Zone = Zone()) -> float:
+    """Get or set the playback volume.
+
+    level:    The level as a value between 0 and 1. If left to None, vilume is
+              returned only.
+    relative: If set to False or None, volume will be set to this value.
+              if set to True, value will be adjusted by this value.
+    zone:     Target zone for the command.
+    returns:  Diverging from MCWS, this method only returns the float volume
+              after changes have been applied (no additional display string).
+    """
+    relative = '1' if relative else '0'
+    payload = {'Level': level, 'Relative': relative, 'Zone': zone.best_identifier(),
+               'ZoneType': zone.best_identifier_type()}
+    response = media_server.send_request('Playback/Volume', payload)
+    response.raise_for_status()
+    response = transform_unstructured_response(response)
+    return float(response["Level"])
 
 #
 #   FILES
