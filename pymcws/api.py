@@ -120,7 +120,7 @@ def playback_volume(media_server: MediaServer, level: float = None,
 
 def playback_mute(media_server: MediaServer, set: bool = None,
                   zone: Zone = Zone()) -> bool:
-    """Get or set the mute state.
+    """Get or set the mute mode.
 
     set:     The boolean value representng the new mute state. Leave to None
              to return state only.
@@ -137,6 +137,22 @@ def playback_mute(media_server: MediaServer, set: bool = None,
     response.raise_for_status()
     response = transform_unstructured_response(response)
     return response["State"] == '1'
+
+
+def playback_repeat(media_server: MediaServer, mode: str = None,
+                    zone: Zone = Zone()) -> str:
+    """Get or set the repeat mode.
+
+    mode:    The repeat mode, a string of either: Off, Playlist, Track, Stop, Toggle
+    zone:    Target zone for the command.
+    returns: The shuffle state after changes took effect.
+    """
+    payload = {'Mode': mode,  'Zone': zone.best_identifier(),
+               'ZoneType': zone.best_identifier_type()}
+    response = media_server.send_request('Playback/Repeat', payload)
+    response.raise_for_status()
+    response = transform_unstructured_response(response)
+    return response["Mode"]
 
 
 def playback_shuffle(media_server: MediaServer, mode: str = None,
