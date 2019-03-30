@@ -52,6 +52,8 @@ def playback_command(media_server: MediaServer, command: str, zone: Zone = Zone(
 
 def playback_zones(media_server: MediaServer, see_hidden: bool = False):
     """Returns a list of zones available at the given server.
+
+    see_hidden: If true, Zones that were hidden by a user are returned as well.
     """
 
     see_hidden = '1' if see_hidden else '0'
@@ -75,7 +77,16 @@ def playback_zones(media_server: MediaServer, see_hidden: bool = False):
 
 
 def playback_position(media_server: MediaServer, position: int = None,
-                      relative: bool = False, zone: Zone = Zone()):
+                      relative: bool = False, zone: Zone = Zone()) -> int:
+    """Get or set the playback position.
+
+    position: The position to seek to in milliseconds. If left to none,
+              position is returned only.
+    relative: If set to False or None, Playback will jumo to absolute position.
+              If set to True, Position argument will be added or subtracte from
+              current position (seeking)
+    zone:     Target zone for the command.
+    """
     relative = '1' if relative else '0'
     payload = {'Position': position, 'Relative': relative, 'Zone': zone.best_identifier(),
                'ZoneType': zone.best_identifier_type()}
@@ -83,6 +94,7 @@ def playback_position(media_server: MediaServer, position: int = None,
     response.raise_for_status()
     response = transform_unstructured_response(response)
     return int(response["Position"])
+
 
 #
 #   FILES
@@ -115,4 +127,9 @@ def transform_unstructured_response(response):
 
 
 def get_media_server(access_key: str, username: str, password: str) -> MediaServer:
+    """Returns an instance of media server with the given parameters.
+
+    This is mainly syntactical sugar for eople that only want to import pymcws
+    and be done with it.
+    """
     return MediaServer(access_key, username, password)

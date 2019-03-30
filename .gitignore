@@ -6,3 +6,6 @@ Pipfile.lock
 build/*
 dist/*
 pymcws.egg*
+
+# private testing files that may contain access keys
+test.py
