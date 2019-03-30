@@ -119,14 +119,13 @@ def playback_volume(media_server: MediaServer, level: float = None,
 
 
 def playback_mute(media_server: MediaServer, set: bool = None,
-                  zone: Zone = Zone()) -> float:
-    """Get or set the playback volume.
+                  zone: Zone = Zone()) -> bool:
+    """Get or set the mute state.
 
     set:     The boolean value representng the new mute state. Leave to None
              to return state only.
     zone:    Target zone for the command.
-    returns: Diverging from MCWS, this method only returns the float volume
-             after changes have been applied (no additional display string).
+    returns: The mute state after changes took effect.
     """
     if set is None:
         set = ""
