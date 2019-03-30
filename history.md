@@ -1,3 +1,5 @@
+# Version History
+
 ### v0.0.3
     * MediaServer now throws exception if key cannot be resolved instead of failing silently
     * Added mute, shuffle and repeat
