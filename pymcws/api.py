@@ -117,6 +117,28 @@ def playback_volume(media_server: MediaServer, level: float = None,
     response = transform_unstructured_response(response)
     return float(response["Level"])
 
+
+def playback_mute(media_server: MediaServer, set: bool = None,
+                  zone: Zone = Zone()) -> float:
+    """Get or set the playback volume.
+
+    set:     The boolean value representng the new mute state. Leave to None
+             to return state only.
+    zone:    Target zone for the command.
+    returns: Diverging from MCWS, this method only returns the float volume
+             after changes have been applied (no additional display string).
+    """
+    if set is None:
+        set = ""
+    else:
+        set = '1' if set else '0'
+    payload = {'Set': set,  'Zone': zone.best_identifier(),
+               'ZoneType': zone.best_identifier_type()}
+    response = media_server.send_request('Playback/Mute', payload)
+    response.raise_for_status()
+    response = transform_unstructured_response(response)
+    return response["State"] == '1'
+
 #
 #   FILES
 #
