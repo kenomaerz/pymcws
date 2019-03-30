@@ -1,8 +1,8 @@
 # pyMCWS
 A python API wrapper for MCWS, the web interface of the excellent JRiver Media Center.
-Th aim is to replicate the MCWS functionality as close as possible in a pythonian,
-easy to us manner. Additionally, common use-cases can be implemented in
-recipes.
+The aim is to replicate the MCWS functionality as close as possible in a pythonian,
+easy to use manner. Additionally, common use-cases can be implemented in
+easily accessible recipes.
 
 ## Usage
 use your package manager of choice to install pymcws:
@@ -31,3 +31,10 @@ for zone in zones:
 mcws.playback_playpause(office, zones[0])
 
 ```
+
+For a full set of examples, please see examples.py.
+
+## Contributing
+Contributions are very welcome. Please create pull requests at your leisure.
+If you are not of the coding kind, you can also leave a request for a specific
+functionality in the issue tracker.  
