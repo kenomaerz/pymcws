@@ -139,6 +139,22 @@ def playback_mute(media_server: MediaServer, set: bool = None,
     response = transform_unstructured_response(response)
     return response["State"] == '1'
 
+
+def playback_shuffle(media_server: MediaServer, mode: str = None,
+                     zone: Zone = Zone()) -> str:
+    """Get or set the shuffle state.
+
+    mode:    The suffle mode, a string of either: Off, On, Automatic, Toogle, Reshuffle
+    zone:    Target zone for the command.
+    returns: The shuffle state after changes took effect.
+    """
+    payload = {'Mode': mode,  'Zone': zone.best_identifier(),
+               'ZoneType': zone.best_identifier_type()}
+    response = media_server.send_request('Playback/Shuffle', payload)
+    response.raise_for_status()
+    response = transform_unstructured_response(response)
+    return response["Mode"]
+
 #
 #   FILES
 #
