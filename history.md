@@ -1,5 +1,5 @@
 # Version History
-### v0.0.3
+### v0.0.4
 * Support for getting file info and parsing MPLs
 * Support for getting images for library files
 * More lenient timeouts for local connections should prevent huge queries from failing

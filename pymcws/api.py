@@ -5,7 +5,6 @@ from PIL import Image
 from io import BytesIO
 
 
-
 def alive(media_server: MediaServer):
     response = media_server.send_request("Alive")
     return (transform_unstructured_response(response))
@@ -89,7 +88,7 @@ def playback_position(media_server: MediaServer, position: int = None,
               If set to True, Position argument will be added or subtracte from
               current position (seeking).
     zone:     Target zone for the command.
-    Returns: The playback position after changes.
+    returns: The playback position after changes.
     """
     relative = '1' if relative else '0'
     payload = {'Position': position, 'Relative': relative, 'Zone': zone.best_identifier(),
@@ -181,18 +180,19 @@ def playback_shuffle(media_server: MediaServer, mode: str = None,
 def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
                    thumbnail_size: str = None, width: int = None,
                    height: int = None, fill_transparency: str = None,
-                   square: bool = False, pad: bool = False, format: str = 'jpg'):
+                   square: bool = False, pad: bool = False, format: str = 'jpg') -> Image:
     """Returns an image for the egiven library file.
 
-    file: A dictionary of tags, as returned by files_search()
-    type: The type of image to get: Thumbnail (default), Full, ThumbnailsBinary
+    file:   A dictionary of tags, as returned by files_search()
+    type:   The type of image to get: Thumbnail (default), Full, ThumbnailsBinary
     thumbnail_size: The size of the thumbnail (if type is thumbnail): Small, Medium, Large
-    width: The width for the returned image.
+    width:  The width for the returned image.
     height: The height for the returned image.
     fill_transparency: A color to fill image transparency with (hex number).
     square: Set to 1 to crop the image to a square aspect ratio.
-    pad: Set to 1 to pad around the image with transparency to fullfill the requested size.
+    pad:    Set to 1 to pad around the image with transparency to fullfill the requested size.
     format: The preferred image format (jpg or png).
+    returns: A pillow image.
     """
     pad = '1' if pad else '0'
     square = '1' if square else '0'
@@ -235,7 +235,7 @@ def files_search(media_server: MediaServer, query: str, action: str,
 
 def transform_unstructured_response(response):
     """Converts the relatively unstructured xml responses from mcws into
-    a ditcionary that easier to process.
+    a dictionary that is easier to process.
     """
     result = {}
     root = ElementTree.fromstring(response.content)
@@ -247,7 +247,7 @@ def transform_unstructured_response(response):
 def transform_mpl_response(response):
     """ Transforms an MPL response into a list of dictionaries.
 
-    Each dictionary represents one file.
+    Each dictionary represents one file and contains the fields as keys.
     """
     result = []
     root = ElementTree.fromstring(response.content)
@@ -262,7 +262,7 @@ def transform_mpl_response(response):
 def get_media_server(access_key: str, username: str, password: str) -> MediaServer:
     """Returns an instance of media server with the given parameters.
 
-    This is mainly syntactical sugar for eople that only want to import pymcws
+    This is mainly syntactical sugar for people that only want to import pymcws
     and be done with it.
     """
     return MediaServer(access_key, username, password)
