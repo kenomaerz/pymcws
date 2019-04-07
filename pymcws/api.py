@@ -205,7 +205,9 @@ def transform_unstructured_response(response):
 
 
 def transform_mpl_response(response):
-    """
+    """ Transforms an MPL response into a list of dictionaries.
+
+    Each dictionary represents one file.
     """
     result = []
     root = ElementTree.fromstring(response.content)
