@@ -182,7 +182,11 @@ def files_search(media_server: MediaServer, query: str, action: str,
     payload["Shuffle"] = '1' if shuffle else '0'
 
     response = media_server.send_request("Files/Search", payload)
-    return response
+    if action != 'MPL':
+        return response
+    else:
+        return transform_mpl_response(response)
+
 
 #
 #   HELPER
@@ -197,6 +201,19 @@ def transform_unstructured_response(response):
     root = ElementTree.fromstring(response.content)
     for child in root:
         result[child.attrib["Name"]] = child.text
+    return result
+
+
+def transform_mpl_response(response):
+    """
+    """
+    result = []
+    root = ElementTree.fromstring(response.content)
+    for item in root:
+        tags = {}
+        for tag in item:
+            tags[tag.attrib["Name"]] = tag.text
+        result.append(tags)
     return result
 
 
