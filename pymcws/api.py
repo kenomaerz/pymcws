@@ -1,6 +1,9 @@
 from .media_server import MediaServer, Zone
 # import logging
 from xml.etree import ElementTree
+from PIL import Image
+from io import BytesIO
+
 
 
 def alive(media_server: MediaServer):
@@ -169,6 +172,44 @@ def playback_shuffle(media_server: MediaServer, mode: str = None,
     response.raise_for_status()
     response = transform_unstructured_response(response)
     return response["Mode"]
+
+#
+#   FILE
+#
+
+
+def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
+                   thumbnail_size: str = None, width: int = None,
+                   height: int = None, fill_transparency: str = None,
+                   square: bool = False, pad: bool = False, format: str = 'jpg'):
+    """Returns an image for the egiven library file.
+
+    file: A dictionary of tags, as returned by files_search()
+    type: The type of image to get: Thumbnail (default), Full, ThumbnailsBinary
+    thumbnail_size: The size of the thumbnail (if type is thumbnail): Small, Medium, Large
+    width: The width for the returned image.
+    height: The height for the returned image.
+    fill_transparency: A color to fill image transparency with (hex number).
+    square: Set to 1 to crop the image to a square aspect ratio.
+    pad: Set to 1 to pad around the image with transparency to fullfill the requested size.
+    format: The preferred image format (jpg or png).
+    """
+    pad = '1' if pad else '0'
+    square = '1' if square else '0'
+    payload = {'Type': type, 'ThumbnailSize': thumbnail_size,
+               'Width': width, 'Height': height, 'FillTransparency': fill_transparency,
+               'Square': square, 'Pad': pad, 'Format': format}
+    if file.get('Key', None) is not None:
+        payload['File'] = file['Key']
+        payload['FileType'] = 'Key'
+    else:
+        payload['File'] = file['Filename']
+        payload['FileType'] = 'Filename'
+    response = media_server.send_request('File/GetImage', payload)
+    response.raise_for_status()
+    print(response.url)
+    return Image.open(BytesIO(response.content))
+
 
 #
 #   FILES
