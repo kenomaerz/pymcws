@@ -181,9 +181,9 @@ class MediaServer:
             params = None
         # choose authentication strategy
         if self.user is None or self.password is None:
-            r = requests.get(endpoint, params=params, timeout=1)
+            r = requests.get(endpoint, params=params, timeout=3)
         else:
-            r = requests.get(endpoint, params=params, timeout=1, auth=self.credentials())
+            r = requests.get(endpoint, params=params, timeout=3, auth=self.credentials())
         r.raise_for_status()
         self.lastConnection = datetime.datetime.now()
         return r
