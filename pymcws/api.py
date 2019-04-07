@@ -207,7 +207,6 @@ def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
         payload['FileType'] = 'Filename'
     response = media_server.send_request('File/GetImage', payload)
     response.raise_for_status()
-    print(response.url)
     return Image.open(BytesIO(response.content))
 
 
