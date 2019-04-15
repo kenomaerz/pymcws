@@ -6,7 +6,7 @@ def play_album(media_server: MediaServer, album_artist: str, album: str,
                use_play_doctor: bool = False, zone: Zone = None):
     """Plays an Album by a given Album Artist.
     """
-    query = '[Album Artist]=[' + album_artist + '] [Album]=[' + album + ']'
+    query = '[Album Artist]=[' + album_artist + '] [Album]=[' + album + '] ~sort=[Disc #],[Track #]'
     response = files_search(media_server, query, 'play', use_play_doctor)
     response.raise_for_status()
 
