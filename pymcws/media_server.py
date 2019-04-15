@@ -119,7 +119,7 @@ class MediaServer:
 
     def test_local(self) -> bool:
         endpoint = self.address_local() + "Alive"
-        r = requests.get(endpoint, timeout=1, auth=self.credentials())
+        r = requests.get(endpoint, timeout=2, auth=self.credentials())
         return (r.status_code == 200)
 
     def test_remote(self) -> bool:
@@ -181,9 +181,9 @@ class MediaServer:
             params = None
         # choose authentication strategy
         if self.user is None or self.password is None:
-            r = requests.get(endpoint, params=params, timeout=3)
+            r = requests.get(endpoint, params=params)
         else:
-            r = requests.get(endpoint, params=params, timeout=3, auth=self.credentials())
+            r = requests.get(endpoint, params=params, auth=self.credentials())
         r.raise_for_status()
         self.lastConnection = datetime.datetime.now()
         return r
