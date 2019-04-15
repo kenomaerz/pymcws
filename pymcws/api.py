@@ -233,6 +233,18 @@ def files_search(media_server: MediaServer, query: str, action: str,
 
 
 #
+#   Library
+#
+
+def library_values(media_server: MediaServer, filter: str = None, field: str = None,
+                   files: str = None, limit: str = None):
+    payload = {'Filter': filter, 'Field': field, 'Files': files, 'Limit': limit}
+    response = media_server.send_request("Files/Search", payload)
+    response.raise_for_status()
+    return transform_list_response(response)
+
+
+#
 #   HELPER
 #
 
@@ -245,6 +257,18 @@ def transform_unstructured_response(response):
     root = ElementTree.fromstring(response.content)
     for child in root:
         result[child.attrib["Name"]] = child.text
+    return result
+
+
+def transform_list_response(response):
+    """ Transforms an response containing a list of items into a list of strings.
+.
+    """
+    result = []
+    root = ElementTree.fromstring(response.content)
+    for item in root:
+        print([a for a in dir(item) if not a.startswith('__')])
+        result.append(item.text)
     return result
 
 
