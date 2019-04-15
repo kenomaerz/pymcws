@@ -180,7 +180,8 @@ def playback_shuffle(media_server: MediaServer, mode: str = None,
 def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
                    thumbnail_size: str = None, width: int = None,
                    height: int = None, fill_transparency: str = None,
-                   square: bool = False, pad: bool = False, format: str = 'jpg') -> Image:
+                   square: bool = False, pad: bool = False, format: str = 'jpg',
+                   transform_to_pil: bool = True) -> Image:
     """Returns an image for the egiven library file.
 
     file:   A dictionary of tags, as returned by files_search()
@@ -192,7 +193,7 @@ def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
     square: Set to 1 to crop the image to a square aspect ratio.
     pad:    Set to 1 to pad around the image with transparency to fullfill the requested size.
     format: The preferred image format (jpg or png).
-    returns: A pillow image.
+    returns: A pillow image if transform_to_pil is True, and a response object otherwise.
     """
     pad = '1' if pad else '0'
     square = '1' if square else '0'
@@ -207,7 +208,10 @@ def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
         payload['FileType'] = 'Filename'
     response = media_server.send_request('File/GetImage', payload)
     response.raise_for_status()
-    return Image.open(BytesIO(response.content))
+    if transform_to_pil:
+        return Image.open(BytesIO(response.content))
+    else:
+        return response
 
 
 #
