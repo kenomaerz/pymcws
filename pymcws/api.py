@@ -207,6 +207,10 @@ def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
         payload['File'] = file['Filename']
         payload['FileType'] = 'Filename'
     response = media_server.send_request('File/GetImage', payload)
+    
+    # Error 500 indicates that no cover was present
+    if response.status_code == 500:
+        return None
     response.raise_for_status()
     if transform_to_pil:
         return Image.open(BytesIO(response.content))
