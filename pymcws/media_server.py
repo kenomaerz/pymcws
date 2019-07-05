@@ -166,7 +166,7 @@ class MediaServer:
     def attempt_request(self, extension: str, payload=None):
         """Sends a request to the server specified in key_data
 
-        Requieres a filled-out key_data object. Will send a request to the server
+        Requires a filled-out key_data object. Will send a request to the server
         specified in key_data, addressing the endpoint with the payload.
         """
 
@@ -184,7 +184,8 @@ class MediaServer:
             r = requests.get(endpoint, params=params)
         else:
             r = requests.get(endpoint, params=params, auth=self.credentials())
-        r.raise_for_status()
+        if r.status_code == 404:
+            r.raise_for_status()
         self.lastConnection = datetime.datetime.now()
         return r
 
