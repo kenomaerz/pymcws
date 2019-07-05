@@ -8,6 +8,5 @@ def query_album(media_server: MediaServer, album_artist: str, album: str):
     album_artist = escape_for_query(album_artist)
     album = escape_for_query(album)
     query = '[Album Artist]=[' + album_artist + '] [Album]=[' + album + '] ~sort=[Disc #],[Track #]'
-    print(query)
     response = files_search(media_server, query, 'MPL')
     return response
