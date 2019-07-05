@@ -298,3 +298,16 @@ def get_media_server(access_key: str, username: str, password: str) -> MediaServ
     and be done with it.
     """
     return MediaServer(access_key, username, password)
+
+def escape_for_query(query_part:str) -> str:
+    """Escapes all reserved query characters in a natural string.
+
+    Do not put a complete query in here - this method is used to escape
+    reserved characters in a natural string that is used in a query
+    (e.g. an album or artist name)
+    """
+    query_part = query_part.replace('\"', '/\"') # replace " with /"
+    query_part = query_part.replace('^', '/^')
+    query_part = query_part.replace('[', '/[')
+    query_part = query_part.replace(']', '/]')
+    return query_part
