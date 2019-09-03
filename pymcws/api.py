@@ -266,7 +266,6 @@ def transform_unstructured_response(response):
 
 def transform_list_response(response):
     """ Transforms an response containing a list of items into a list of strings.
-.
     """
     result = []
     root = ElementTree.fromstring(response.content)
