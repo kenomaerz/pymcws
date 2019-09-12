@@ -1,4 +1,5 @@
 from .media_server import MediaServer, Zone
+
 # import logging
 from xml.etree import ElementTree
 from PIL import Image
@@ -7,7 +8,8 @@ from io import BytesIO
 
 def alive(media_server: MediaServer):
     response = media_server.send_request("Alive")
-    return (transform_unstructured_response(response))
+    return transform_unstructured_response(response)
+
 
 #
 #   PLAYBACK
@@ -15,27 +17,27 @@ def alive(media_server: MediaServer):
 
 
 def playback_play(media_server: MediaServer, zone: Zone = Zone()):
-    playback_command(media_server, 'Play', zone)
+    playback_command(media_server, "Play", zone)
 
 
 def playback_playpause(media_server: MediaServer, zone: Zone = Zone()):
-    playback_command(media_server, 'PlayPause', zone)
+    playback_command(media_server, "PlayPause", zone)
 
 
 def playback_stop(media_server: MediaServer, zone: Zone = Zone()):
-    playback_command(media_server, 'Stop', zone)
+    playback_command(media_server, "Stop", zone)
 
 
 def playback_stopall(media_server: MediaServer, zone: Zone = Zone()):
-    playback_command(media_server, 'StopAll', zone)
+    playback_command(media_server, "StopAll", zone)
 
 
 def playback_previous(media_server: MediaServer, zone: Zone = Zone()):
-    playback_command(media_server, 'Previous', zone)
+    playback_command(media_server, "Previous", zone)
 
 
 def playback_next(media_server: MediaServer, zone: Zone = Zone()):
-    playback_command(media_server, 'Next', zone)
+    playback_command(media_server, "Next", zone)
 
 
 def playback_command(media_server: MediaServer, command: str, zone: Zone = Zone()):
@@ -47,7 +49,7 @@ def playback_command(media_server: MediaServer, command: str, zone: Zone = Zone(
     zone currently selected in the MC GUI is targeted.
     """
 
-    payload = {'Zone': zone.best_identifier(), 'ZoneType': zone.best_identifier_type()}
+    payload = {"Zone": zone.best_identifier(), "ZoneType": zone.best_identifier_type()}
     extension = "Playback/" + command
     media_server.send_request(extension, payload)
 
@@ -58,9 +60,9 @@ def playback_zones(media_server: MediaServer, see_hidden: bool = False):
     see_hidden: If true, Zones that were hidden by a user are returned as well.
     """
 
-    see_hidden = '1' if see_hidden else '0'
-    payload = {'Hidden': see_hidden}
-    response = media_server.send_request('Playback/Zones', payload)
+    see_hidden = "1" if see_hidden else "0"
+    payload = {"Hidden": see_hidden}
+    response = media_server.send_request("Playback/Zones", payload)
     response.raise_for_status()
     content = transform_unstructured_response(response)
     num_zones = int(content["NumberZones"])
@@ -73,13 +75,17 @@ def playback_zones(media_server: MediaServer, see_hidden: bool = False):
         zone.id = content["ZoneID" + str(i)]
         zone.name = content["ZoneName" + str(i)]
         zone.guid = content["ZoneGUID" + str(i)]
-        zone.is_dlna = True if (content["ZoneDLNA" + str(i)] == '1') else False
+        zone.is_dlna = True if (content["ZoneDLNA" + str(i)] == "1") else False
         zones.append(zone)
     return zones
 
 
-def playback_position(media_server: MediaServer, position: int = None,
-                      relative: bool = False, zone: Zone = Zone()) -> int:
+def playback_position(
+    media_server: MediaServer,
+    position: int = None,
+    relative: bool = False,
+    zone: Zone = Zone(),
+) -> int:
     """Get or set the playback position.
 
     position: The position to seek to in milliseconds. If left to none,
@@ -90,17 +96,25 @@ def playback_position(media_server: MediaServer, position: int = None,
     zone:     Target zone for the command.
     returns: The playback position after changes.
     """
-    relative = '1' if relative else '0'
-    payload = {'Position': position, 'Relative': relative, 'Zone': zone.best_identifier(),
-               'ZoneType': zone.best_identifier_type()}
-    response = media_server.send_request('Playback/Position', payload)
+    relative = "1" if relative else "0"
+    payload = {
+        "Position": position,
+        "Relative": relative,
+        "Zone": zone.best_identifier(),
+        "ZoneType": zone.best_identifier_type(),
+    }
+    response = media_server.send_request("Playback/Position", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
     return int(response["Position"])
 
 
-def playback_volume(media_server: MediaServer, level: float = None,
-                    relative: bool = False, zone: Zone = Zone()) -> float:
+def playback_volume(
+    media_server: MediaServer,
+    level: float = None,
+    relative: bool = False,
+    zone: Zone = Zone(),
+) -> float:
     """Get or set the playback volume.
 
     level:    The level as a value between 0 and 1. If left to None, vilume is
@@ -111,17 +125,22 @@ def playback_volume(media_server: MediaServer, level: float = None,
     returns:  Diverging from MCWS, this method only returns the float volume
               after changes have been applied (no additional display string).
     """
-    relative = '1' if relative else '0'
-    payload = {'Level': level, 'Relative': relative, 'Zone': zone.best_identifier(),
-               'ZoneType': zone.best_identifier_type()}
-    response = media_server.send_request('Playback/Volume', payload)
+    relative = "1" if relative else "0"
+    payload = {
+        "Level": level,
+        "Relative": relative,
+        "Zone": zone.best_identifier(),
+        "ZoneType": zone.best_identifier_type(),
+    }
+    response = media_server.send_request("Playback/Volume", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
     return float(response["Level"])
 
 
-def playback_mute(media_server: MediaServer, set: bool = None,
-                  zone: Zone = Zone()) -> bool:
+def playback_mute(
+    media_server: MediaServer, set: bool = None, zone: Zone = Zone()
+) -> bool:
     """Get or set the mute mode.
 
     set:     The boolean value representng the new mute state. Leave to None
@@ -132,56 +151,76 @@ def playback_mute(media_server: MediaServer, set: bool = None,
     if set is None:
         set = ""
     else:
-        set = '1' if set else '0'
-    payload = {'Set': set,  'Zone': zone.best_identifier(),
-               'ZoneType': zone.best_identifier_type()}
-    response = media_server.send_request('Playback/Mute', payload)
+        set = "1" if set else "0"
+    payload = {
+        "Set": set,
+        "Zone": zone.best_identifier(),
+        "ZoneType": zone.best_identifier_type(),
+    }
+    response = media_server.send_request("Playback/Mute", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
-    return response["State"] == '1'
+    return response["State"] == "1"
 
 
-def playback_repeat(media_server: MediaServer, mode: str = None,
-                    zone: Zone = Zone()) -> str:
+def playback_repeat(
+    media_server: MediaServer, mode: str = None, zone: Zone = Zone()
+) -> str:
     """Get or set the repeat mode.
 
     mode:    The repeat mode, a string of either: Off, Playlist, Track, Stop, Toggle
     zone:    Target zone for the command.
     returns: The shuffle state after changes took effect.
     """
-    payload = {'Mode': mode,  'Zone': zone.best_identifier(),
-               'ZoneType': zone.best_identifier_type()}
-    response = media_server.send_request('Playback/Repeat', payload)
+    payload = {
+        "Mode": mode,
+        "Zone": zone.best_identifier(),
+        "ZoneType": zone.best_identifier_type(),
+    }
+    response = media_server.send_request("Playback/Repeat", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
     return response["Mode"]
 
 
-def playback_shuffle(media_server: MediaServer, mode: str = None,
-                     zone: Zone = Zone()) -> str:
+def playback_shuffle(
+    media_server: MediaServer, mode: str = None, zone: Zone = Zone()
+) -> str:
     """Get or set the shuffle state.
 
     mode:    The suffle mode, a string of either: Off, On, Automatic, Toogle, Reshuffle
     zone:    Target zone for the command.
     returns: The shuffle state after changes took effect.
     """
-    payload = {'Mode': mode,  'Zone': zone.best_identifier(),
-               'ZoneType': zone.best_identifier_type()}
-    response = media_server.send_request('Playback/Shuffle', payload)
+    payload = {
+        "Mode": mode,
+        "Zone": zone.best_identifier(),
+        "ZoneType": zone.best_identifier_type(),
+    }
+    response = media_server.send_request("Playback/Shuffle", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
     return response["Mode"]
+
 
 #
 #   FILE
 #
 
 
-def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
-                   thumbnail_size: str = None, width: int = None,
-                   height: int = None, fill_transparency: str = None,
-                   square: bool = False, pad: bool = False, format: str = 'jpg',
-                   transform_to_pil: bool = True) -> Image:
+def file_get_image(
+    media_server: MediaServer,
+    file,
+    type: str = "Thumbnail",
+    thumbnail_size: str = None,
+    width: int = None,
+    height: int = None,
+    fill_transparency: str = None,
+    square: bool = False,
+    pad: bool = False,
+    format: str = "jpg",
+    transform_to_pil: bool = True,
+) -> Image:
     """Returns an image for the egiven library file.
 
     file:   A dictionary of tags, as returned by files_search()
@@ -195,19 +234,25 @@ def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
     format: The preferred image format (jpg or png).
     returns: A pillow image if transform_to_pil is True, and a response object otherwise.
     """
-    pad = '1' if pad else '0'
-    square = '1' if square else '0'
-    payload = {'Type': type, 'ThumbnailSize': thumbnail_size,
-               'Width': width, 'Height': height, 'FillTransparency': fill_transparency,
-               'Square': square, 'Pad': pad, 'Format': format}
-    if file.get('Key', None) is not None:
-        payload['File'] = file['Key']
-        payload['FileType'] = 'Key'
+    pad = "1" if pad else "0"
+    square = "1" if square else "0"
+    payload = {
+        "Type": type,
+        "ThumbnailSize": thumbnail_size,
+        "Width": width,
+        "Height": height,
+        "FillTransparency": fill_transparency,
+        "Square": square,
+        "Pad": pad,
+        "Format": format,
+    }
+    if file.get("Key", None) is not None:
+        payload["File"] = file["Key"]
+        payload["FileType"] = "Key"
     else:
-        payload['File'] = file['Filename']
-        payload['FileType'] = 'Filename'
-    response = media_server.send_request('File/GetImage', payload)
-    
+        payload["File"] = file["Filename"]
+        payload["FileType"] = "Filename"
+    response = media_server.send_request("File/GetImage", payload)
     # Error 500 indicates that no cover was present
     if response.status_code == 500:
         return None
@@ -223,14 +268,24 @@ def file_get_image(media_server: MediaServer, file, type: str = 'Thumbnail',
 #
 
 
-def files_search(media_server: MediaServer, query: str, action: str,
-                 use_play_doctor: bool = False, shuffle: bool = False):
-    payload = {'Action': action, 'Query': query}
-    payload["playDoctor"] = '1' if use_play_doctor else '0'
-    payload["Shuffle"] = '1' if shuffle else '0'
+def files_search(
+    media_server: MediaServer,
+    query: str,
+    action: str,
+    fields=None,
+    use_play_doctor: bool = False,
+    shuffle: bool = False,
+):
+    payload = {"Action": action, "Query": query}
+    payload["playDoctor"] = "1" if use_play_doctor else "0"
+    payload["Shuffle"] = "1" if shuffle else "0"
+    if fields is not None:
+        fields = ",".join(fields)
+        payload["Fields"] = fields
+        print(fields)
 
     response = media_server.send_request("Files/Search", payload)
-    if action != 'MPL':
+    if action != "MPL":
         return response
     else:
         return transform_mpl_response(response)
@@ -240,9 +295,15 @@ def files_search(media_server: MediaServer, query: str, action: str,
 #   Library
 #
 
-def library_values(media_server: MediaServer, filter: str = None, field: str = None,
-                   files: str = None, limit: str = None):
-    payload = {'Filter': filter, 'Field': field, 'Files': files, 'Limit': limit}
+
+def library_values(
+    media_server: MediaServer,
+    filter: str = None,
+    field: str = None,
+    files: str = None,
+    limit: str = None,
+):
+    payload = {"Filter": filter, "Field": field, "Files": files, "Limit": limit}
     response = media_server.send_request("Files/Search", payload)
     response.raise_for_status()
     return transform_list_response(response)
@@ -270,7 +331,7 @@ def transform_list_response(response):
     result = []
     root = ElementTree.fromstring(response.content)
     for item in root:
-        print([a for a in dir(item) if not a.startswith('__')])
+        print([a for a in dir(item) if not a.startswith("__")])
         result.append(item.text)
     return result
 
@@ -298,15 +359,16 @@ def get_media_server(access_key: str, username: str, password: str) -> MediaServ
     """
     return MediaServer(access_key, username, password)
 
-def escape_for_query(query_part:str) -> str:
+
+def escape_for_query(query_part: str) -> str:
     """Escapes all reserved query characters in a natural string.
 
     Do not put a complete query in here - this method is used to escape
     reserved characters in a natural string that is used in a query
     (e.g. an album or artist name)
     """
-    query_part = query_part.replace('\"', '/\"') # replace " with /"
-    query_part = query_part.replace('^', '/^')
-    query_part = query_part.replace('[', '/[')
-    query_part = query_part.replace(']', '/]')
+    query_part = query_part.replace('"', '/"')  # replace " with /"
+    query_part = query_part.replace("^", "/^")
+    query_part = query_part.replace("[", "/[")
+    query_part = query_part.replace("]", "/]")
     return query_part
