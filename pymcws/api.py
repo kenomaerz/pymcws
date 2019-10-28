@@ -221,7 +221,7 @@ def file_get_image(
     format: str = "jpg",
     transform_to_pil: bool = True,
 ) -> Image:
-    """Returns an image for the egiven library file.
+    """Returns an image for the given library file.
 
     file:   A dictionary of tags, as returned by files_search()
     type:   The type of image to get: Thumbnail (default), Full, ThumbnailsBinary

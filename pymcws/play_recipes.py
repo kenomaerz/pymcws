@@ -9,7 +9,7 @@ def play_album(media_server: MediaServer, album_artist: str, album: str,
     album_artist = escape_for_query(album_artist)
     album = escape_for_query(album)
     query = '[Album Artist]=[' + album_artist + '] [Album]=[' + album + '] ~sort=[Disc #],[Track #]'
-    response = files_search(media_server, query, 'play', use_play_doctor)
+    response = files_search(media_server, query, 'play',  use_play_doctor=use_play_doctor)
     response.raise_for_status()
 
 
@@ -19,5 +19,5 @@ def play_keyword(media_server: MediaServer, keyword: str, use_play_doctor: bool 
     """
     keyword = escape_for_query(keyword)
     query = '[keywords]=[' + keyword + ']'
-    response = files_search(media_server, query, 'play', use_play_doctor, shuffle)
+    response = files_search(media_server, query, 'play',  use_play_doctor=use_play_doctor, shuffle=shuffle)
     response.raise_for_status()
