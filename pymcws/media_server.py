@@ -148,7 +148,6 @@ class MediaServer:
         if (et.attrib["Status"] == "Error"):
             logger.error("KeyID '" + self.key_id + "' could not be resolved.'")
             raise UnresolvableKeyError(self.key_id, et.find('msg').text)
-            return None
         self.key_id = et.find('keyid').text
         self.ip = et.find('ip').text
         self.port = et.find('port').text

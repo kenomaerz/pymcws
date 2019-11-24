@@ -100,9 +100,10 @@ def playback_position(
     payload = {
         "Position": position,
         "Relative": relative,
-        "Zone": zone.best_identifier(),
-        "ZoneType": zone.best_identifier_type(),
     }
+    if zone is not None:
+        payload["Zone"] = zone.best_identifier()
+        payload["ZoneType"] = zone.best_identifier_type()
     response = media_server.send_request("Playback/Position", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
@@ -117,8 +118,8 @@ def playback_volume(
 ) -> float:
     """Get or set the playback volume.
 
-    level:    The level as a value between 0 and 1. If left to None, vilume is
-              returned only.
+    level:    The level as a value between 0 and 1. If left to None, volume is
+              returned unchanged.
     relative: If set to False or None, volume will be set to this value.
               if set to True, value will be adjusted by this value.
     zone:     Target zone for the command.
@@ -129,9 +130,10 @@ def playback_volume(
     payload = {
         "Level": level,
         "Relative": relative,
-        "Zone": zone.best_identifier(),
-        "ZoneType": zone.best_identifier_type(),
     }
+    if zone is not None:
+        payload["Zone"] = zone.best_identifier()
+        payload["ZoneType"] = zone.best_identifier_type()
     response = media_server.send_request("Playback/Volume", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
@@ -152,11 +154,7 @@ def playback_mute(
         set = ""
     else:
         set = "1" if set else "0"
-    payload = {
-        "Set": set,
-        "Zone": zone.best_identifier(),
-        "ZoneType": zone.best_identifier_type(),
-    }
+    payload = {"Set": set}
     response = media_server.send_request("Playback/Mute", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
@@ -168,15 +166,15 @@ def playback_repeat(
 ) -> str:
     """Get or set the repeat mode.
 
-    mode:    The repeat mode, a string of either: Off, Playlist, Track, Stop, Toggle
+    mode:    The repeat mode, a string of either: Off, Playlist, Track, Stop, Toggle,
+             or None to retrieve repeat value
     zone:    Target zone for the command.
     returns: The shuffle state after changes took effect.
     """
-    payload = {
-        "Mode": mode,
-        "Zone": zone.best_identifier(),
-        "ZoneType": zone.best_identifier_type(),
-    }
+    payload = {"Mode": mode}
+    if zone is not None:
+        payload["Zone"] = zone.best_identifier()
+        payload["ZoneType"] = zone.best_identifier_type()
     response = media_server.send_request("Playback/Repeat", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
@@ -192,11 +190,10 @@ def playback_shuffle(
     zone:    Target zone for the command.
     returns: The shuffle state after changes took effect.
     """
-    payload = {
-        "Mode": mode,
-        "Zone": zone.best_identifier(),
-        "ZoneType": zone.best_identifier_type(),
-    }
+    payload = {"Mode": mode}
+    if zone is not None:
+        payload["Zone"] = zone.best_identifier()
+        payload["ZoneType"] = zone.best_identifier_type()
     response = media_server.send_request("Playback/Shuffle", payload)
     response.raise_for_status()
     response = transform_unstructured_response(response)
@@ -272,18 +269,24 @@ def files_search(
     media_server: MediaServer,
     query: str,
     action: str,
-    fields=None,
+    fields = None,
     use_play_doctor: bool = False,
     shuffle: bool = False,
+    no_local_filenames = False,
+    zone = None
 ):
     payload = {"Action": action, "Query": query}
-    payload["playDoctor"] = "1" if use_play_doctor else "0"
+    if zone is not None:
+        payload["Zone"] = zone.best_identifier()
+        payload["ZoneType"] = zone.best_identifier_type()
+    payload["NoLocalFilenames"] = "1" if no_local_filenames else "0"
+    payload["PlayDoctor"] = "1" if use_play_doctor else "0"
     payload["Shuffle"] = "1" if shuffle else "0"
     if fields is not None:
         fields = ",".join(fields)
         payload["Fields"] = fields
         print(fields)
-
+    print(payload)
     response = media_server.send_request("Files/Search", payload)
     if action != "MPL":
         return response

@@ -10,9 +10,9 @@ office = mcws.get_media_server("AccessKey", "readonly", "supersecretpassword")
 # You can also set info manually.
 office = mcws.get_media_server("localhost", "readonly", "supersecretpassword")
 
-# Play an album using a play recipe. replace this with one that you have
+# Play an album using a play recipe. Replace this with one that you have
 print("Playing an Album")
-mcws.play_album(office, "Ludovico Einaudi", "I Giorni")
+mcws.play_album(office, "Ludovico Einaudi", "I Giorni", repeat=False)
 time.sleep(3)
 print("Pausing playback")
 mcws.playback_playpause(office)
@@ -23,7 +23,11 @@ print("Zones available at server:")
 for zone in zones:
     print("    ", zone.index, zone.id, zone.name, zone.guid, zone.is_dlna)
 
-# all playback commands can be used with a zone, same as the mcws API.
+# files_search lets execute arbitrary queriesPlayback using zones
+mcws.files_search(office, query='[Artist]=[Sting]',action='Play', zone=zones[0])
+time.sleep(3)
+
+# all playback commands can be used with a zone, same as the mpicws API.
 # Lets blindly play/pause the first returned zone
 print("Play/Pausing first returned zone")
 mcws.playback_playpause(office, zones[0])
@@ -33,10 +37,12 @@ print("Jumping to position (ms): " + str(mcws.playback_position(office, 30000)))
 mcws.playback_playpause(office, zones[0])
 
 # Adjust volume
-print("Setting volume to 0, the increasing by .1 five times")
+print("Setting volume to 0, increasing it by .1 five times")
+# Set absolute volume
 mcws.playback_volume(office, 0)
+# set relative volume
 for i in range(0, 5):
-    print("    + 10%: " + str(mcws.playback_volume(office, 0.1, True)))
+    print("    + 10%: " + str(mcws.playback_volume(office, 0.1, relative=True)))
     time.sleep(0.4)
 
 # Muting
