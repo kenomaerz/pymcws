@@ -1,4 +1,11 @@
 # Version History
+### v0.0.5
+* Created query recipes for easier querying
+* Improved image and cover art handling
+* Implemented library_values
+* Implemented automatic query escaping for the jriver search language
+* Introduced zone handling 
+
 ### v0.0.4
 * Support for getting file info and parsing MPLs
 * Support for getting images for library files
@@ -17,6 +24,6 @@
 ### v0.0.1
 * Initial release and proof of concept
 * Resolve media network access keys
-* issue playback commands
-* search and play files to different zones on server
-* first play_recipes that facilitate playback of files  
+* Issue playback commands
+* Search and play files to different zones on server
+* First play_recipes that facilitate playback of files  
