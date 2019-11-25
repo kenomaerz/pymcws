@@ -101,9 +101,9 @@ class MediaServer:
         return self.address_local()
 
     def address_local(self):
-        if self.local_ip_list is None or self.port is None:
+        if self.local_ip is None or self.port is None:
             return None
-        return URL_LOCAL.format(ip=self.local_ip_list, port=self.port)
+        return URL_LOCAL.format(ip=self.local_ip, port=self.port)
 
     def address_remote(self):
         # TODO implement
@@ -118,9 +118,17 @@ class MediaServer:
         pass
 
     def test_local(self) -> bool:
-        endpoint = self.address_local() + "Alive"
-        r = requests.get(endpoint, timeout=1, auth=self.credentials())
-        return (r.status_code == 200)
+        for ip in self.local_ip_list:
+            try:
+                self.local_ip = ip
+                endpoint = self.address_local() + "Alive"
+                r = requests.get(endpoint, timeout=2, auth=self.credentials())
+                if r.status_code == 200:
+                    return True
+            except requests.exceptions.RequestException as e:  # This is the correct syntax
+                logger.warn('Failed to connect to local ip: ' + self.local_ip)
+            
+        return False
 
     def test_remote(self) -> bool:
         pass
@@ -140,14 +148,13 @@ class MediaServer:
         if (et.attrib["Status"] == "Error"):
             logger.error("KeyID '" + self.key_id + "' could not be resolved.'")
             raise UnresolvableKeyError(self.key_id, et.find('msg').text)
-            return None
         self.key_id = et.find('keyid').text
         self.ip = et.find('ip').text
         self.port = et.find('port').text
         # TODO Need to detect and handle lists of IPs
-        self.local_ip_list = et.find('localiplist').text
+        self.local_ip_list = et.find('localiplist').text.split(',')
         self.https_port = et.find('https_port').text
-        self.mac_address_list = et.find('macaddresslist').text
+        self.mac_address_list = et.find('macaddresslist').text.split(',')
         self.last_connection = datetime.datetime.now()
 
     def send_request(self, extension: str, payload=None):
@@ -160,13 +167,13 @@ class MediaServer:
             self.refresh()
             # TODO Better retry handling
             # Currently, renegotiation happens ones, and fails if that fails
-            # as well. Need to oconsider consequences and expand accordingly
+            # as well. Need to consider consequences and expand accordingly
             return self.attempt_request(extension, payload)
 
     def attempt_request(self, extension: str, payload=None):
         """Sends a request to the server specified in key_data
 
-        Requieres a filled-out key_data object. Will send a request to the server
+        Requires a filled-out key_data object. Will send a request to the server
         specified in key_data, addressing the endpoint with the payload.
         """
 
@@ -181,10 +188,11 @@ class MediaServer:
             params = None
         # choose authentication strategy
         if self.user is None or self.password is None:
-            r = requests.get(endpoint, params=params, timeout=3)
+            r = requests.get(endpoint, params=params)
         else:
-            r = requests.get(endpoint, params=params, timeout=3, auth=self.credentials())
-        r.raise_for_status()
+            r = requests.get(endpoint, params=params, auth=self.credentials())
+        if r.status_code == 404:
+            r.raise_for_status()
         self.lastConnection = datetime.datetime.now()
         return r
 
