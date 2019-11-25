@@ -57,7 +57,7 @@ def playback_command(media_server: MediaServer, command: str, zone: Zone = Zone(
 def playback_zones(media_server: MediaServer, see_hidden: bool = False):
     """Returns a list of zones available at the given server.
 
-    see_hidden: If true, Zones that were hidden by a user are returned as well.
+    see_hidden: If true, zones that were hidden by a user are returned as well.
     """
 
     see_hidden = "1" if see_hidden else "0"
@@ -91,7 +91,7 @@ def playback_position(
     position: The position to seek to in milliseconds. If left to none,
               position is returned only.
     relative: If set to False or None, playback will jumo to absolute position.
-              If set to True, Position argument will be added or subtracte from
+              If set to True, Position argument will be added or subtracted from
               current position (seeking).
     zone:     Target zone for the command.
     returns: The playback position after changes.

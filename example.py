@@ -27,7 +27,7 @@ for zone in zones:
 mcws.files_search(office, query='[Artist]=[Sting]',action='Play', zone=zones[0])
 time.sleep(3)
 
-# all playback commands can be used with a zone, same as the mpicws API.
+# all playback commands can be used with a zone, same as the mcws API.
 # Lets blindly play/pause the first returned zone
 print("Play/Pausing first returned zone")
 mcws.playback_playpause(office, zones[0])
@@ -53,13 +53,13 @@ print("    Unmuting, new state: " + str(mcws.playback_mute(office, False)))
 
 # Repeat
 print("Repeat mode is: " + mcws.playback_repeat(office))
-print("    turning playlist repeat on, new state: " + mcws.playback_repeat(office, 'Playlist'))
-print("    Turnign repeat off, new state: " + mcws.playback_shuffle(office, 'Off'))
+print("    Turning playlist repeat on, new state: " + mcws.playback_repeat(office, 'Playlist'))
+print("    Turning repeat off, new state: " + mcws.playback_shuffle(office, 'Off'))
 
 
 # Shuffling
 print("Shuffle mode is: " + mcws.playback_shuffle(office))
-print("    turning shuffle on, new state: " + mcws.playback_shuffle(office, 'On'))
+print("    Turning shuffle on, new state: " + mcws.playback_shuffle(office, 'On'))
 print("    Reshuffling playlist: " + mcws.playback_shuffle(office, 'Reshuffle'))
 
 mcws.playback_stop(office)
