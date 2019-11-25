@@ -4,7 +4,9 @@
 * Improved image and cover art handling
 * Implemented library_values
 * Implemented automatic query escaping for the jriver search language
+* Play recipes allow  setting shuffle and repeat states
 * Introduced zone handling 
+* Full automatic local ip resolution, also for multiple network adapters
 
 ### v0.0.4
 * Support for getting file info and parsing MPLs
