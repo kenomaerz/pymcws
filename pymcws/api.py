@@ -97,10 +97,7 @@ def playback_position(
     returns: The playback position after changes.
     """
     relative = "1" if relative else "0"
-    payload = {
-        "Position": position,
-        "Relative": relative,
-    }
+    payload = {"Position": position, "Relative": relative}
     if zone is not None:
         payload["Zone"] = zone.best_identifier()
         payload["ZoneType"] = zone.best_identifier_type()
@@ -127,10 +124,7 @@ def playback_volume(
               after changes have been applied (no additional display string).
     """
     relative = "1" if relative else "0"
-    payload = {
-        "Level": level,
-        "Relative": relative,
-    }
+    payload = {"Level": level, "Relative": relative}
     if zone is not None:
         payload["Zone"] = zone.best_identifier()
         payload["ZoneType"] = zone.best_identifier_type()
@@ -269,11 +263,11 @@ def files_search(
     media_server: MediaServer,
     query: str,
     action: str,
-    fields = None,
+    fields=None,
     use_play_doctor: bool = False,
     shuffle: bool = False,
-    no_local_filenames = False,
-    zone = None
+    no_local_filenames=False,
+    zone=None,
 ):
     payload = {"Action": action, "Query": query}
     if zone is not None:

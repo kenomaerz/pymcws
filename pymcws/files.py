@@ -5,7 +5,7 @@ def transform_path(
     win_to_unix: bool = False,
     unix_to_win: bool = False,
 ):
-    """
+    """ Helper method that translates Windows and Unix filepaths
     """
     for file in files:
         file = file.replace(search_for, replace_with)

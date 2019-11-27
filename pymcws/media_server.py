@@ -42,10 +42,10 @@ class MediaServer:
         self.key_id = key_id
         self.user = user
         self.password = password
-        if (self.key_id == "localhost"):
+        if self.key_id == "localhost":
             self.local_ip_list = "127.0.0.1"
-            self.port = '52199'
-            self.con_strategy = 'local'
+            self.port = "52199"
+            self.con_strategy = "local"
 
     def __str__(self):
         return "Server " + self.key_id + " at " + self.address()
@@ -77,21 +77,30 @@ class MediaServer:
         if self.con_strategy == "local":
             if self.test_local():
                 self.con_strategy = "local"
-                logger.debug("Access key '" + self.key_id + "': con_strategy set to 'local'.")
+                logger.debug(
+                    "Access key '" + self.key_id + "': con_strategy set to 'local'."
+                )
                 return True
             else:
-                self.con_strategy = 'unknown'
+                self.con_strategy = "unknown"
 
         # 2) Test query jriver service for key data
         if self.con_strategy == "unknown" or self.con_strategy == "unreachable":
-            logger.debug("Access key '" + self.key_id + "' has con_strategy '"
-                         + self.con_strategy + "' - refreshing.")
+            logger.debug(
+                "Access key '"
+                + self.key_id
+                + "' has con_strategy '"
+                + self.con_strategy
+                + "' - refreshing."
+            )
             self.update_from_jriver()
 
         # 3) Test if local IP is reachable
         if self.test_local():
             self.con_strategy = "local"
-            logger.debug("Access key '" + self.key_id + "': con_strategy set to 'local'.")
+            logger.debug(
+                "Access key '" + self.key_id + "': con_strategy set to 'local'."
+            )
             return True
             # 4) Test if remote ip is reachable
         # 5) Machine behind key is unreachable
@@ -126,8 +135,8 @@ class MediaServer:
                 if r.status_code == 200:
                     return True
             except requests.exceptions.RequestException as e:  # This is the correct syntax
-                logger.warn('Failed to connect to local ip: ' + self.local_ip)
-            
+                logger.warn("Failed to connect to local ip: " + self.local_ip)
+
         return False
 
     def test_remote(self) -> bool:
@@ -141,29 +150,31 @@ class MediaServer:
         from outside the class, please consider reporting your usecase if you need to.
         """
         logger.debug("Updating access key '" + self.key_id + "'")
-        r = requests.get(URL_KEYLOOKUP, params={'id': self.key_id}, timeout=5)
+        r = requests.get(URL_KEYLOOKUP, params={"id": self.key_id}, timeout=5)
         r.raise_for_status()
 
         et = ElementTree.fromstring(r.content)
-        if (et.attrib["Status"] == "Error"):
+        if et.attrib["Status"] == "Error":
             logger.error("KeyID '" + self.key_id + "' could not be resolved.'")
-            raise UnresolvableKeyError(self.key_id, et.find('msg').text)
-        self.key_id = et.find('keyid').text
-        self.ip = et.find('ip').text
-        self.port = et.find('port').text
+            raise UnresolvableKeyError(self.key_id, et.find("msg").text)
+        self.key_id = et.find("keyid").text
+        self.ip = et.find("ip").text
+        self.port = et.find("port").text
         # TODO Need to detect and handle lists of IPs
-        self.local_ip_list = et.find('localiplist').text.split(',')
-        self.https_port = et.find('https_port').text
-        self.mac_address_list = et.find('macaddresslist').text.split(',')
+        self.local_ip_list = et.find("localiplist").text.split(",")
+        self.https_port = et.find("https_port").text
+        self.mac_address_list = et.find("macaddresslist").text.split(",")
         self.last_connection = datetime.datetime.now()
 
     def send_request(self, extension: str, payload=None):
-        if self.con_strategy == 'unknown':
+        if self.con_strategy == "unknown":
             self.refresh()
         try:
             return self.attempt_request(extension, payload)
         except HTTPError:
-            logger.warn("Failed to contact " + self.key_id + " next failure will cause error.")
+            logger.warn(
+                "Failed to contact " + self.key_id + " next failure will cause error."
+            )
             self.refresh()
             # TODO Better retry handling
             # Currently, renegotiation happens ones, and fails if that fails
@@ -178,11 +189,11 @@ class MediaServer:
         """
 
         # Get destination
-        if (self.address() is None):
+        if self.address() is None:
             self.refresh()
         endpoint = self.address() + extension
         # prepare payload
-        if (payload is not None):
+        if payload is not None:
             params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
         else:
             params = None
@@ -206,6 +217,7 @@ class Zone:
     fields do not affect functionality, the best available value is retrieved
     automatically.
     """
+
     def __init__(self):
         self.id = -1  # Default ID indicating the zone currently selected in MC
         self.index = None
@@ -219,23 +231,28 @@ class Zone:
         Use best_identifier_type() to find out what type of identifier was
         returned.
         """
-        if (self.id is not None):
+        if self.id is not None:
             return self.id
-        if (self.name is not None):
+        if self.name is not None:
             return self.name
-        if (self.index is not None):
+        if self.index is not None:
             return self.index
-        logger.warn("Unable to determine best identifier " + " for Zone. This is probably a bug.")
+        logger.warn(
+            "Unable to determine best identifier "
+            + " for Zone. This is probably a bug."
+        )
 
     def best_identifier_type(self):
-        if (self.id is not None):
-            return 'ID'
-        if (self.name is not None):
-            return 'Name'
-        if (self.index is not None):
-            return 'Index'
-        logger.warn("Unable to determine best identifier type"
-                    + " for Zone. This is probably a bug.")
+        if self.id is not None:
+            return "ID"
+        if self.name is not None:
+            return "Name"
+        if self.index is not None:
+            return "Index"
+        logger.warn(
+            "Unable to determine best identifier type"
+            + " for Zone. This is probably a bug."
+        )
 
     def __str__(self):
         return self.name
