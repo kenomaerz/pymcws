@@ -114,6 +114,9 @@ class MediaServer:
         return False
 
     def address(self):
+        """ Returns the address of the mediaserver with regard to the currently chosen
+            connection strategy. If no strategy was selected, None is returned. 
+        """
         if self.con_strategy == "local":
             return self.address_local()
         if self.con_strategy == "remote":
@@ -121,11 +124,22 @@ class MediaServer:
         return None
 
     def address_local(self):
+        """ Returns the local address of the server.
+            
+            This method requires that exactly one local_ip is set.
+            Call test_local to test which ip from the local_ip_list is working
+            and set it automatically.
+        """
         if self.local_ip is None or self.port is None:
             return None
         return URL_API.format(ip=self.local_ip, port=self.port)
 
     def address_remote(self):
+        """ Returns the remote address of the server.
+
+            Assuming that the server is configured correctly and reachable,
+            this address should always work.
+        """
         if self.remote_ip is None or self.port is None:
             return None
         return URL_API.format(ip=self.remote_ip, port=self.port)
@@ -222,8 +236,8 @@ class MediaServer:
 class Zone:
     """Zones represent targets for playback-related commands.
 
-    Zones are available on a per-Server basis and can be retrieved for each
-    using mcws. If you know the id or name of the zone that you want to target,
+    Zones are available on a per-server basis and can be retrieved for each
+    using MCWS. If you know the id or name of the zone that you want to target,
     you can also create a zone and set id, index or name manually. The missing
     fields do not affect functionality, the best available value is retrieved
     automatically.
@@ -254,6 +268,11 @@ class Zone:
         )
 
     def best_identifier_type(self):
+        """ Returns the type of the best identifier.
+
+        Used in conjunction with best_identifier() to automatically determine
+        the best strategy to communicate zones to the MCWS API.
+        """
         if self.id is not None:
             return "ID"
         if self.name is not None:
