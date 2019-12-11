@@ -279,8 +279,6 @@ def files_search(
     if fields is not None:
         fields = ",".join(fields)
         payload["Fields"] = fields
-        print(fields)
-    print(payload)
     response = media_server.send_request("Files/Search", payload)
     if action != "MPL":
         return response
@@ -312,7 +310,7 @@ def library_values(
 
 
 def transform_unstructured_response(response):
-    """Converts the relatively unstructured xml responses from mcws into
+    """Converts the relatively unstructured XML responses from MCWS into
     a dictionary that is easier to process.
     """
     result = {}
@@ -323,12 +321,11 @@ def transform_unstructured_response(response):
 
 
 def transform_list_response(response):
-    """ Transforms an response containing a list of items into a list of strings.
+    """ Transforms a response containing a list of items into a list of strings.
     """
     result = []
     root = ElementTree.fromstring(response.content)
     for item in root:
-        print([a for a in dir(item) if not a.startswith("__")])
         result.append(item.text)
     return result
 
@@ -358,11 +355,11 @@ def get_media_server(access_key: str, username: str, password: str) -> MediaServ
 
 
 def escape_for_query(query_part: str) -> str:
-    """Escapes all reserved query characters in a natural string.
+    """Escapes all characters reserved by jriver in a natural string.
 
     Do not put a complete query in here - this method is used to escape
-    reserved characters in a natural string that is used in a query
-    (e.g. an album or artist name)
+    reserved characters in a natural string that will be used as a query fragment.
+    This is usually the content of a field (e.g. an album or artist name).
     """
     query_part = query_part.replace('"', '/"')  # replace " with /"
     query_part = query_part.replace("^", "/^")

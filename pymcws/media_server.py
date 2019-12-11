@@ -10,7 +10,7 @@ from .exceptions import UnresolvableKeyError
 
 
 URL_KEYLOOKUP = "http://webplay.jriver.com/libraryserver/lookup"
-URL_LOCAL = "http://{ip}:{port}/MCWS/v1/"
+URL_API = "http://{ip}:{port}/MCWS/v1/"
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ class MediaServer:
         self.key_id = key_id
         self.user = user
         self.password = password
+        self.con_strategy = "unknown"
         if self.key_id == "localhost":
             self.local_ip_list = "127.0.0.1"
             self.port = "52199"
@@ -102,29 +103,46 @@ class MediaServer:
                 "Access key '" + self.key_id + "': con_strategy set to 'local'."
             )
             return True
-            # 4) Test if remote ip is reachable
+        # 4) Test if remote ip is reachable
+        if self.test_remote():
+            self.con_strategy = "remote"
+            logger.debug(
+                "Access key '" + self.key_id + "': con_strategy set to 'remote'."
+            )
+            return True
         # 5) Machine behind key is unreachable
         return False
 
     def address(self):
-        return self.address_local()
+        """ Returns the address of the mediaserver with regard to the currently chosen
+            connection strategy. If no strategy was selected, None is returned. 
+        """
+        if self.con_strategy == "local":
+            return self.address_local()
+        if self.con_strategy == "remote":
+            return self.address_remote()
+        return None
 
     def address_local(self):
+        """ Returns the local address of the server.
+            
+            This method requires that exactly one local_ip is set.
+            Call test_local to test which ip from the local_ip_list is working
+            and set it automatically.
+        """
         if self.local_ip is None or self.port is None:
             return None
-        return URL_LOCAL.format(ip=self.local_ip, port=self.port)
+        return URL_API.format(ip=self.local_ip, port=self.port)
 
     def address_remote(self):
-        # TODO implement
-        pass
+        """ Returns the remote address of the server.
 
-    def configure_local_connection(self):
-        # TODO
-        pass
-
-    def configure_remote_connection(self):
-        # TODO
-        pass
+            Assuming that the server is configured correctly and reachable,
+            this address should always work.
+        """
+        if self.remote_ip is None or self.port is None:
+            return None
+        return URL_API.format(ip=self.remote_ip, port=self.port)
 
     def test_local(self) -> bool:
         for ip in self.local_ip_list:
@@ -140,7 +158,14 @@ class MediaServer:
         return False
 
     def test_remote(self) -> bool:
-        pass
+        try:
+            endpoint = self.address_remote() + "Alive"
+            r = requests.get(endpoint, timeout=3, auth=self.credentials())
+            if r.status_code == 200:
+                return True
+        except requests.exceptions.RequestException as e:  # This is the correct syntax
+            logger.warn("Failed to connect to remote ip: " + self.remote_ip)
+        return False
 
     def update_from_jriver(self):
         """ Contacts the JRiver WebService to retrieve information about the access key.
@@ -152,7 +177,6 @@ class MediaServer:
         logger.debug("Updating access key '" + self.key_id + "'")
         r = requests.get(URL_KEYLOOKUP, params={"id": self.key_id}, timeout=5)
         r.raise_for_status()
-
         et = ElementTree.fromstring(r.content)
         if et.attrib["Status"] == "Error":
             logger.error("KeyID '" + self.key_id + "' could not be resolved.'")
@@ -160,8 +184,9 @@ class MediaServer:
         self.key_id = et.find("keyid").text
         self.ip = et.find("ip").text
         self.port = et.find("port").text
-        # TODO Need to detect and handle lists of IPs
         self.local_ip_list = et.find("localiplist").text.split(",")
+        self.remote_ip = et.find("ip").text
+        self.http_port = et.find("port").text
         self.https_port = et.find("https_port").text
         self.mac_address_list = et.find("macaddresslist").text.split(",")
         self.last_connection = datetime.datetime.now()
@@ -211,8 +236,8 @@ class MediaServer:
 class Zone:
     """Zones represent targets for playback-related commands.
 
-    Zones are available on a per-Server basis and can be retrieved for each
-    using mcws. If you know the id or name of the zone that you want to target,
+    Zones are available on a per-server basis and can be retrieved for each
+    using MCWS. If you know the id or name of the zone that you want to target,
     you can also create a zone and set id, index or name manually. The missing
     fields do not affect functionality, the best available value is retrieved
     automatically.
@@ -243,6 +268,11 @@ class Zone:
         )
 
     def best_identifier_type(self):
+        """ Returns the type of the best identifier.
+
+        Used in conjunction with best_identifier() to automatically determine
+        the best strategy to communicate zones to the MCWS API.
+        """
         if self.id is not None:
             return "ID"
         if self.name is not None:
