@@ -1,5 +1,8 @@
 # Version History
 
+### v0.1.0
+* Added remote connection capabilities. The MediaServer class queries JRiver's webservice and tries to determine the best possible connection method automatically.
+
 ### v0.0.7
 * Fixed zones being ignored in play_recipes.
 
