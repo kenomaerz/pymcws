@@ -45,6 +45,7 @@ class MediaServer:
         self.con_strategy = "unknown"
         if self.key_id == "localhost":
             self.local_ip_list = "127.0.0.1"
+            self.local_ip = "127.0.0.1"
             self.port = "52199"
             self.con_strategy = "local"
 
