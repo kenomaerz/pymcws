@@ -1,4 +1,5 @@
 from .media_server import MediaServer, Zone
+from datetime import datetime, timedelta, time
 
 # import logging
 from xml.etree import ElementTree
@@ -283,7 +284,7 @@ def files_search(
     if action != "MPL":
         return response
     else:
-        return transform_mpl_response(response)
+        return transform_mpl_response(media_server, response)
 
 
 #
@@ -299,7 +300,7 @@ def library_values(
     limit: str = None,
 ):
     payload = {"Filter": filter, "Field": field, "Files": files, "Limit": limit}
-    response = media_server.send_request("Files/Search", payload)
+    response = media_server.send_request("Library/Values", payload)
     response.raise_for_status()
     return transform_list_response(response)
 
@@ -330,7 +331,7 @@ def transform_list_response(response):
     return result
 
 
-def transform_mpl_response(response):
+def transform_mpl_response(media_server, response):
     """ Transforms an MPL response into a list of dictionaries.
 
     Each dictionary represents one file and contains the fields as keys.
@@ -340,7 +341,8 @@ def transform_mpl_response(response):
     for item in root:
         tags = {}
         for tag in item:
-            tags[tag.attrib["Name"]] = tag.text
+            name = tag.attrib["Name"]
+            tags[name] = media_server.fields[name]["Decoder"](tag.text)
         result.append(tags)
     return result
 
