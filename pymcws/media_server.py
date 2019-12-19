@@ -289,7 +289,6 @@ def library_fields(self: MediaServer):
     result = {}
 
     # Some fields are not reported by the library fields function
-
     result["Key"] = {
         "Name": "Key",
         "DataType": "Integer",
@@ -347,7 +346,8 @@ def parse_jriver_date(jriver_date) -> datetime:
     # Handle locale if necessary
     jriver_date = jriver_date.replace(",", ".")
     days = float(jriver_date)
-    # Jriver returns days since 1900, must convert
-    date = datetime.strptime("1900", "%Y")
+    # JRiver returns days since midnight 30th december 1899, must convert
+    # See https://yabb.jriver.com/interact/index.php/topic,123431.0.html
+    date = datetime.strptime("30.12.1899", "%d.%m.%Y")
     date += timedelta(days=days)
     return date
