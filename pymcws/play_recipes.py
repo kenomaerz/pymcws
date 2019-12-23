@@ -8,14 +8,14 @@ def play_album(
     album: str,
     shuffle: bool = False,
     use_play_doctor: bool = False,
-    repeat: bool = None,
+    repeat: bool = False,
     zone: Zone = None,
 ):
     """ Plays an album by a given album artist.
-    
-        By default, this call disables shuffle, so the album can be listened in the intended order.
-        set shuffle to None to avoid this and preserve shuffle state.
-        Setting shuffle to True only shuffles order of files and leaves playback state alone.
+
+        By default, this call disables shuffle and repeat, so the album can be listened in the intended order.
+        set either to None to avoid this and preserve shuffle/repeat state.
+        Setting shuffle to True only shuffles order of files in playlist and leaves playback state alone.
     """
     album_artist = escape_for_query(album_artist)
     album = escape_for_query(album)
@@ -29,7 +29,12 @@ def play_album(
         + "] ~sort=[Disc #],[Track #]"
     )
     response = files_search(
-        media_server, query, "play", shuffle=shuffle, use_play_doctor=use_play_doctor, zone=zone
+        media_server,
+        query,
+        "play",
+        shuffle=shuffle,
+        use_play_doctor=use_play_doctor,
+        zone=zone,
     )
     response.raise_for_status()
     if repeat is not None:
@@ -49,6 +54,11 @@ def play_keyword(
     keyword = escape_for_query(keyword)
     query = "[keywords]=[" + keyword + "]"
     response = files_search(
-        media_server, query, "play", use_play_doctor=use_play_doctor, shuffle=shuffle, zone=zone
+        media_server,
+        query,
+        "play",
+        use_play_doctor=use_play_doctor,
+        shuffle=shuffle,
+        zone=zone,
     )
     response.raise_for_status()
