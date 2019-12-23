@@ -7,7 +7,6 @@ import urllib
 from datetime import datetime, timedelta
 from PIL import Image
 from io import BytesIO
-
 from .exceptions import UnresolvableKeyError
 
 
@@ -22,7 +21,7 @@ class MediaServer:
         """Creates an access key and stores data relevant to this key.
 
         Minimally, the key_id is required. If either username or password is
-        'None', then all requests to the server behin this key will be sent
+        'None', then all requests to the server behind this key will be sent
         without authentication. Use the key_id "localhost" to directly connect
         to the jriver instance running on the same machine as the code.
         """
@@ -184,7 +183,7 @@ class MediaServer:
         self.http_port = et.find("port").text
         self.https_port = et.find("https_port").text
         self.mac_address_list = et.find("macaddresslist").text.split(",")
-        self.last_connection = datetime.datetime.now()
+        self.last_connection = datetime.now()
 
     def send_request(self, extension: str, payload=None):
         if self.con_strategy == "unknown":
