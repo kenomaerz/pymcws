@@ -1,5 +1,4 @@
 from .media_server import MediaServer, Zone
-from datetime import datetime, timedelta, time
 
 # import logging
 from xml.etree import ElementTree
@@ -221,7 +220,7 @@ def file_get_image(
     height: The height for the returned image.
     fill_transparency: A color to fill image transparency with (hex number).
     square: Set to 1 to crop the image to a square aspect ratio.
-    pad:    Set to 1 to pad around the image with transparency to fullfill the requested size.
+    pad:    Set to 1 to pad around the image with transparency to fulfil the requested size.
     format: The preferred image format (jpg or png).
     returns: A pillow image if transform_to_pil is True, and a response object otherwise.
     """
