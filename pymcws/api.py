@@ -29,8 +29,8 @@ def playback_stop(media_server: MediaServer, zone: Zone = Zone()):
     playback_command(media_server, "Stop", zone)
 
 
-def playback_stopall(media_server: MediaServer, zone: Zone = Zone()):
-    playback_command(media_server, "StopAll", zone)
+def playback_stopall(media_server: MediaServer):
+    playback_command(media_server, "StopAll")
 
 
 def playback_previous(media_server: MediaServer, zone: Zone = Zone()):
