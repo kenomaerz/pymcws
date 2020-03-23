@@ -84,20 +84,19 @@ def playback_zones(media_server: MediaServer, see_hidden: bool = False):
 def playback_position(
     media_server: MediaServer,
     position: int = None,
-    relative: bool = False,
+    relative: int = None,
     zone: Zone = Zone(),
 ) -> int:
     """Get or set the playback position.
 
-    position: The position to seek to in milliseconds. If left to none,
-              position is returned only.
-    relative: If set to False or None, playback will jumo to absolute position.
-              If set to True, Position argument will be added or subtracted from
-              current position (seeking).
+    position: The position to seek to in milliseconds. If left as None,
+              position is returned only. Set to -1 to choose default jump length based on media type.
+    relative: When set to 1, 'Position' will be added to the current position to allow jumping forward.
+              When set to -1, 'Position' will be subtracted from the current position to allow jumping
+              backwards. Use a 'Position' of -1 to jump the default amount based on the media type.
     zone:     Target zone for the command.
-    returns: The playback position after changes.
+    returns: The playback position (after changes, if applicable).
     """
-    relative = "1" if relative else "0"
     payload = {"Position": position, "Relative": relative}
     if zone is not None:
         payload["Zone"] = zone.best_identifier()
@@ -140,7 +139,7 @@ def playback_mute(
 ) -> bool:
     """Get or set the mute mode.
 
-    set:     The boolean value representng the new mute state. Leave to None
+    set:     The boolean value representing the new mute state. Leave to None
              to return state only.
     zone:    Target zone for the command.
     returns: The mute state after changes took effect.
