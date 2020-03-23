@@ -4,6 +4,9 @@ The aim is to replicate the MCWS functionality as close as possible in a pythoni
 easy to use manner. Additionally, common use-cases can be implemented in
 easily accessible recipes.
 
+Currently, the minimum required version of JRiver MC is 26. Backwards compatibility is possible,
+but will have to be requested - it is mainly the automatic field conversion that is preventing it.
+
 ## Usage
 use your package manager of choice to install pymcws:
 
