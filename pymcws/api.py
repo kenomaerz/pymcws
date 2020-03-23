@@ -28,8 +28,8 @@ def playback_stop(media_server: MediaServer, zone: Zone = Zone()):
     playback_command(media_server, "Stop", zone)
 
 
-def playback_stopall(media_server: MediaServer, zone: Zone = Zone()):
-    playback_command(media_server, "StopAll", zone)
+def playback_stopall(media_server: MediaServer):
+    playback_command(media_server, "StopAll")
 
 
 def playback_previous(media_server: MediaServer, zone: Zone = Zone()):
@@ -83,20 +83,19 @@ def playback_zones(media_server: MediaServer, see_hidden: bool = False):
 def playback_position(
     media_server: MediaServer,
     position: int = None,
-    relative: bool = False,
+    relative: int = None,
     zone: Zone = Zone(),
 ) -> int:
     """Get or set the playback position.
 
-    position: The position to seek to in milliseconds. If left to none,
-              position is returned only.
-    relative: If set to False or None, playback will jumo to absolute position.
-              If set to True, Position argument will be added or subtracted from
-              current position (seeking).
+    position: The position to seek to in milliseconds. If left as None,
+              position is returned only. Set to -1 to choose default jump length based on media type.
+    relative: When set to 1, 'Position' will be added to the current position to allow jumping forward.
+              When set to -1, 'Position' will be subtracted from the current position to allow jumping
+              backwards. Use a 'Position' of -1 to jump the default amount based on the media type.
     zone:     Target zone for the command.
-    returns: The playback position after changes.
+    returns: The playback position (after changes, if applicable).
     """
-    relative = "1" if relative else "0"
     payload = {"Position": position, "Relative": relative}
     if zone is not None:
         payload["Zone"] = zone.best_identifier()
@@ -139,7 +138,7 @@ def playback_mute(
 ) -> bool:
     """Get or set the mute mode.
 
-    set:     The boolean value representng the new mute state. Leave to None
+    set:     The boolean value representing the new mute state. Leave to None
              to return state only.
     zone:    Target zone for the command.
     returns: The mute state after changes took effect.
@@ -221,7 +220,7 @@ def file_get_image(
     height: The height for the returned image.
     fill_transparency: A color to fill image transparency with (hex number).
     square: Set to 1 to crop the image to a square aspect ratio.
-    pad:    Set to 1 to pad around the image with transparency to fullfill the requested size.
+    pad:    Set to 1 to pad around the image with transparency to fulfil the requested size.
     format: The preferred image format (jpg or png).
     returns: A pillow image if transform_to_pil is True, and a response object otherwise.
     """
@@ -283,7 +282,7 @@ def files_search(
     if action != "MPL":
         return response
     else:
-        return transform_mpl_response(response)
+        return transform_mpl_response(media_server, response)
 
 
 #
@@ -299,7 +298,7 @@ def library_values(
     limit: str = None,
 ):
     payload = {"Filter": filter, "Field": field, "Files": files, "Limit": limit}
-    response = media_server.send_request("Files/Search", payload)
+    response = media_server.send_request("Library/Values", payload)
     response.raise_for_status()
     return transform_list_response(response)
 
@@ -330,7 +329,7 @@ def transform_list_response(response):
     return result
 
 
-def transform_mpl_response(response):
+def transform_mpl_response(media_server, response):
     """ Transforms an MPL response into a list of dictionaries.
 
     Each dictionary represents one file and contains the fields as keys.
@@ -340,7 +339,8 @@ def transform_mpl_response(response):
     for item in root:
         tags = {}
         for tag in item:
-            tags[tag.attrib["Name"]] = tag.text
+            name = tag.attrib["Name"]
+            tags[name] = media_server.fields[name]["Decoder"](tag.text)
         result.append(tags)
     return result
 

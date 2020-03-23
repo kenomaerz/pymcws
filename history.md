@@ -1,7 +1,14 @@
 # Version History
 
+### v0.2.0
+* Added automatic field resolution. Fields are automatically converted to and from their corresponding python types by the API, sparing you the postprocessing.
+* Because of this, the required version of MC is now 26. Earlier version support is possible but needs to be requested.
+* Play recipes use more reasonable defaults for shuffle and repeat.
+* Several smaller bugfixes.
+
+
 ### v0.1.0
-* Added remote connection capabilities. The MediaServer class queries JRiver's webservice and tries to determine the best possible connection method automatically.
+* Added remote connection capabilities. The MediaServer class queries JRiver's web service and tries to determine the best possible connection method automatically.
 
 ### v0.0.7
 * Fixed zones being ignored in play_recipes.

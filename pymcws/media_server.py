@@ -3,9 +3,8 @@ from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 import logging
 from xml.etree import ElementTree
-import datetime
 import urllib
-
+from datetime import datetime, timedelta
 from .exceptions import UnresolvableKeyError
 
 
@@ -16,25 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 class MediaServer:
-
-    key_id = None
-    ip = None
-    port = None
-    local_ip_list = None
-    local_ip = None
-    https_port = None
-    mac_address_list = None
-    con_strategy = "unknown"
-    last_connection = None
-    user = None
-    password = None
-    zones = None
-
     def __init__(self, key_id: str, user: str, password: str):
         """Creates an access key and stores data relevant to this key.
 
         Minimally, the key_id is required. If either username or password is
-        'None', then all requests to the server behin this key will be sent
+        'None', then all requests to the server behind this key will be sent
         without authentication. Use the key_id "localhost" to directly connect
         to the jriver instance running on the same machine as the code.
         """
@@ -43,10 +28,13 @@ class MediaServer:
         self.user = user
         self.password = password
         self.con_strategy = "unknown"
+        self.fields = None
         if self.key_id == "localhost":
             self.local_ip_list = "127.0.0.1"
+            self.local_ip = "127.0.0.1"
             self.port = "52199"
             self.con_strategy = "local"
+            self.fields = library_fields(self)
 
     def __str__(self):
         return "Server " + self.key_id + " at " + self.address()
@@ -72,6 +60,7 @@ class MediaServer:
         # 3) Test if local IP is reachable
         # 4) If not, test if remote ip is reachable
         # 5) else machine behind key is unreachable
+        # 6) if machine is reachable, update the field list
         """
         logger.debug("Refreshing access key '" + self.key_id + "'")
         # 1) Test if local ip is present and reachable
@@ -81,6 +70,7 @@ class MediaServer:
                 logger.debug(
                     "Access key '" + self.key_id + "': con_strategy set to 'local'."
                 )
+                self.fields = library_fields(self)
                 return True
             else:
                 self.con_strategy = "unknown"
@@ -102,6 +92,7 @@ class MediaServer:
             logger.debug(
                 "Access key '" + self.key_id + "': con_strategy set to 'local'."
             )
+            self.fields = library_fields(self)
             return True
         # 4) Test if remote ip is reachable
         if self.test_remote():
@@ -109,13 +100,14 @@ class MediaServer:
             logger.debug(
                 "Access key '" + self.key_id + "': con_strategy set to 'remote'."
             )
+            self.fields = library_fields(self)
             return True
         # 5) Machine behind key is unreachable
         return False
 
     def address(self):
         """ Returns the address of the mediaserver with regard to the currently chosen
-            connection strategy. If no strategy was selected, None is returned. 
+            connection strategy. If no strategy was selected, None is returned.
         """
         if self.con_strategy == "local":
             return self.address_local()
@@ -125,7 +117,7 @@ class MediaServer:
 
     def address_local(self):
         """ Returns the local address of the server.
-            
+
             This method requires that exactly one local_ip is set.
             Call test_local to test which ip from the local_ip_list is working
             and set it automatically.
@@ -152,7 +144,7 @@ class MediaServer:
                 r = requests.get(endpoint, timeout=2, auth=self.credentials())
                 if r.status_code == 200:
                     return True
-            except requests.exceptions.RequestException as e:  # This is the correct syntax
+            except requests.exceptions.RequestException as e:
                 logger.warn("Failed to connect to local ip: " + self.local_ip)
 
         return False
@@ -163,7 +155,7 @@ class MediaServer:
             r = requests.get(endpoint, timeout=3, auth=self.credentials())
             if r.status_code == 200:
                 return True
-        except requests.exceptions.RequestException as e:  # This is the correct syntax
+        except requests.exceptions.RequestException as e:
             logger.warn("Failed to connect to remote ip: " + self.remote_ip)
         return False
 
@@ -189,7 +181,7 @@ class MediaServer:
         self.http_port = et.find("port").text
         self.https_port = et.find("https_port").text
         self.mac_address_list = et.find("macaddresslist").text.split(",")
-        self.last_connection = datetime.datetime.now()
+        self.last_connection = datetime.now()
 
     def send_request(self, extension: str, payload=None):
         if self.con_strategy == "unknown":
@@ -229,7 +221,7 @@ class MediaServer:
             r = requests.get(endpoint, params=params, auth=self.credentials())
         if r.status_code == 404:
             r.raise_for_status()
-        self.lastConnection = datetime.datetime.now()
+        self.lastConnection = datetime.now()
         return r
 
 
@@ -286,3 +278,73 @@ class Zone:
 
     def __str__(self):
         return self.name
+
+
+def library_fields(self: MediaServer):
+    response = self.send_request("Library/Fields", {})
+    response.raise_for_status()
+    result = {}
+
+    # Some fields are not reported by the library fields function
+    result["Key"] = {
+        "Name": "Key",
+        "DataType": "Integer",
+        "EditType": "Not editable",
+        "Decoder": lambda x: int(x),
+    }
+    result["Date (readable)"] = {
+        "Name": "Date (readable)",
+        "DataType": "String",
+        "EditType": "Not editable",
+        "Decoder": lambda x: x,
+    }
+
+    root = ElementTree.fromstring(response.content)
+    for item in root:
+        name = item.attrib["Name"]
+        data_type = item.attrib["DataType"]
+        result[name] = {
+            "Name": name,
+            "DataType": data_type,
+            "EditType": item.attrib["EditType"],
+        }
+
+        expression = item.attrib.get("Expression", None)
+        if expression is not None:
+            result[name]["Expression"] = expression
+
+        if (
+            data_type == "String"
+            or data_type == "Path"
+            or data_type == "User"
+            or data_type == "Image File"
+        ):
+            result[name]["Decoder"] = lambda x: x
+        elif data_type == "Integer" or data_type == "File Size":
+            result[name]["Decoder"] = lambda x: int(x)
+        elif data_type == "Date (float)":
+            result[name]["Decoder"] = lambda x: parse_jriver_date(x)
+        elif data_type == "Date":
+            result[name]["Decoder"] = lambda x: datetime.fromtimestamp(int(x))
+        elif data_type == "List":
+            result[name]["Decoder"] = lambda x: x.split(";")
+        elif data_type == "Decimal" or data_type == "Percentage" or data_type == "Time":
+            result[name]["Decoder"] = lambda x: float(x.replace(",", "."))
+        else:
+            result[name]["Decoder"] = lambda x: x
+    return result
+
+
+def parse_jriver_date(jriver_date) -> datetime:
+    """ Takes a jriver date float and turns it into a date object
+    """
+    if jriver_date is None:
+        return None
+    # Handle locale if necessary
+    jriver_date = jriver_date.replace(",", ".")
+    days = float(jriver_date)
+    # JRiver returns days since midnight 30th december 1899, must convert
+    # See https://yabb.jriver.com/interact/index.php/topic,123431.0.html
+    date = datetime.strptime("30.12.1899", "%d.%m.%Y")
+    date += timedelta(days=days)
+    return date

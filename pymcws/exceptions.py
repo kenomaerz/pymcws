@@ -1,11 +1,13 @@
-class Error(Exception):
+class PymcwsError(Exception):
     """Base class for exceptions in this module."""
 
     pass
 
 
-class UnresolvableKeyError(Error):
+class UnresolvableKeyError(PymcwsError):
     """Exception raised if access key is unresolvable.
+
+    More specifically, JRiver web services were available, but do not know the given key.
 
     Attributes:
         key -- The key that could not be resolved
