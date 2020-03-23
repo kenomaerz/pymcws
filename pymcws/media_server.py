@@ -5,8 +5,6 @@ import logging
 from xml.etree import ElementTree
 import urllib
 from datetime import datetime, timedelta
-from PIL import Image
-from io import BytesIO
 from .exceptions import UnresolvableKeyError
 
 
@@ -146,7 +144,7 @@ class MediaServer:
                 r = requests.get(endpoint, timeout=2, auth=self.credentials())
                 if r.status_code == 200:
                     return True
-            except requests.exceptions.RequestException as e:  # This is the correct syntax
+            except requests.exceptions.RequestException as e:
                 logger.warn("Failed to connect to local ip: " + self.local_ip)
 
         return False
@@ -157,7 +155,7 @@ class MediaServer:
             r = requests.get(endpoint, timeout=3, auth=self.credentials())
             if r.status_code == 200:
                 return True
-        except requests.exceptions.RequestException as e:  # This is the correct syntax
+        except requests.exceptions.RequestException as e:
             logger.warn("Failed to connect to remote ip: " + self.remote_ip)
         return False
 
