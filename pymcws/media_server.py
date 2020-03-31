@@ -29,6 +29,8 @@ class MediaServer:
         self.password = password
         self.con_strategy = "unknown"
         self.fields = None
+        self.session = requests.Session()
+        self.session.auth = (user, password)
         if self.key_id == "localhost":
             self.local_ip_list = "127.0.0.1"
             self.local_ip = "127.0.0.1"
@@ -214,11 +216,8 @@ class MediaServer:
             params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
         else:
             params = None
-        # choose authentication strategy
-        if self.user is None or self.password is None:
-            r = requests.get(endpoint, params=params)
-        else:
-            r = requests.get(endpoint, params=params, auth=self.credentials())
+        r = self.session.get(endpoint, params=params)
+
         if r.status_code == 404:
             r.raise_for_status()
         self.lastConnection = datetime.now()
