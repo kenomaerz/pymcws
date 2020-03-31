@@ -1,5 +1,8 @@
 # Version History
 
+### v0.2.1
+* Introduced session management for established media servers.
+
 ### v0.2.0
 * Added automatic field resolution. Fields are automatically converted to and from their corresponding python types by the API, sparing you the postprocessing.
 * Because of this, the required version of MC is now 26. Earlier version support is possible but needs to be requested.
