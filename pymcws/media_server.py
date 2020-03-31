@@ -146,7 +146,7 @@ class MediaServer:
                 r = requests.get(endpoint, timeout=2, auth=self.credentials())
                 if r.status_code == 200:
                     return True
-            except requests.exceptions.RequestException as e:
+            except requests.exceptions.RequestException:
                 logger.warn("Failed to connect to local ip: " + self.local_ip)
 
         return False
@@ -157,7 +157,7 @@ class MediaServer:
             r = requests.get(endpoint, timeout=3, auth=self.credentials())
             if r.status_code == 200:
                 return True
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             logger.warn("Failed to connect to remote ip: " + self.remote_ip)
         return False
 
