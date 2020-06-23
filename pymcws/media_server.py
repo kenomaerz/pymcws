@@ -280,6 +280,15 @@ class Zone:
 
 
 def library_fields(self: MediaServer):
+    """ Returns information about the library fields that this server can handle.
+
+        The result is a dictionary that contains the name of all known fields as 
+        keys, and corresponding information as a dictionary with the keys:
+        'Name', 'DataType', 'EditType' (all as provided by MCWS) and 
+        'Decoder', a lambda function that can parse values fo this field to the 
+        correct python type.
+    """
+
     response = self.send_request("Library/Fields", {})
     response.raise_for_status()
     result = {}
