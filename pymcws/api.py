@@ -193,8 +193,23 @@ def playback_shuffle(
     return response["Mode"]
 
 
+def playback_loadDSPreset(self, name: string, zone: Zone = Zone()):
+    """ Loads a named DSP preset for the given zone
+
+    name:   Name of the preset to load
+    zone:   Target zone (optional)
+    """
+    payload = {"Name": name}
+    if zone is not None:
+        payload["Zone"] = zone.best_identifier()
+        payload["ZoneType"] = zone.best_identifier_type()
+    response = media_server.send_request("Playback/LoadDSPPreset", payload)
+    response.raise_for_status()
+    return
+
+
 #
-#   FILE
+#   FILES
 #
 
 
@@ -251,11 +266,6 @@ def file_get_image(
         return Image.open(BytesIO(response.content))
     else:
         return response
-
-
-#
-#   FILES
-#
 
 
 def files_search(
