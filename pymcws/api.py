@@ -193,7 +193,7 @@ def playback_shuffle(
     return response["Mode"]
 
 
-def playback_loadDSPreset(self, name: string, zone: Zone = Zone()):
+def playback_loadDSPreset(media_server: MediaServer, name: str, zone: Zone = Zone()):
     """ Loads a named DSP preset for the given zone
 
     name:   Name of the preset to load
