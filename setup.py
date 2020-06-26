@@ -8,7 +8,7 @@ with open("history.md") as history_file:
 
 setup_args = dict(
     name="pymcws",
-    version="0.2.1",
+    version="0.2.2",
     description="Python API for the MCWS interface of JRiver Media Center",
     long_description_content_type="text/markdown",
     long_description=README + "\n\n" + HISTORY,

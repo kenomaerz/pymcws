@@ -1,5 +1,8 @@
 # Version History
 
+### v0.2.2
+* Implemented playback_loadDSPPreset based on https://github.com/kenomaerz/pymcws/issues/6.
+
 ### v0.2.1
 * Introduced session management for established media servers.
 
