@@ -75,5 +75,5 @@ print("    Reshuffling playlist: " + mcws.playback_shuffle(office, "Reshuffle"))
 mcws.playback_stop(office)
 
 # Loading a DSP Preset
-print("Loading DSP preset 'Night Mode', probably not present on your box")
-mcws.playback_loadDSPreset(office, "Night Mode")
+print("Loading DSP preset 'EQ Flat', probably not present on your box")
+mcws.playback_loadDSPreset(office, "EQ Flat")
