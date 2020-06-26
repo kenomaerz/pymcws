@@ -29,6 +29,8 @@ class MediaServer:
         self.password = password
         self.con_strategy = "unknown"
         self.fields = None
+        self.session = requests.Session()
+        self.session.auth = (user, password)
         if self.key_id == "localhost":
             self.local_ip_list = "127.0.0.1"
             self.local_ip = "127.0.0.1"
@@ -144,7 +146,7 @@ class MediaServer:
                 r = requests.get(endpoint, timeout=2, auth=self.credentials())
                 if r.status_code == 200:
                     return True
-            except requests.exceptions.RequestException as e:
+            except requests.exceptions.RequestException:
                 logger.warn("Failed to connect to local ip: " + self.local_ip)
 
         return False
@@ -155,7 +157,7 @@ class MediaServer:
             r = requests.get(endpoint, timeout=3, auth=self.credentials())
             if r.status_code == 200:
                 return True
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             logger.warn("Failed to connect to remote ip: " + self.remote_ip)
         return False
 
@@ -214,11 +216,8 @@ class MediaServer:
             params = urllib.parse.urlencode(payload, quote_via=urllib.parse.quote)
         else:
             params = None
-        # choose authentication strategy
-        if self.user is None or self.password is None:
-            r = requests.get(endpoint, params=params)
-        else:
-            r = requests.get(endpoint, params=params, auth=self.credentials())
+        r = self.session.get(endpoint, params=params)
+
         if r.status_code == 404:
             r.raise_for_status()
         self.lastConnection = datetime.now()
@@ -281,6 +280,15 @@ class Zone:
 
 
 def library_fields(self: MediaServer):
+    """ Returns information about the library fields that this server can handle.
+
+        The result is a dictionary that contains the name of all known fields as 
+        keys, and corresponding information as a dictionary with the keys:
+        'Name', 'DataType', 'EditType' (all as provided by MCWS) and 
+        'Decoder', a lambda function that can parse values fo this field to the 
+        correct python type.
+    """
+
     response = self.send_request("Library/Fields", {})
     response.raise_for_status()
     result = {}

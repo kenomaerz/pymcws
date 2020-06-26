@@ -94,7 +94,7 @@ def playback_position(
               When set to -1, 'Position' will be subtracted from the current position to allow jumping
               backwards. Use a 'Position' of -1 to jump the default amount based on the media type.
     zone:     Target zone for the command.
-    returns: The playback position (after changes, if applicable).
+    returns:  The playback position (after changes, if applicable).
     """
     payload = {"Position": position, "Relative": relative}
     if zone is not None:
@@ -136,7 +136,7 @@ def playback_volume(
 def playback_mute(
     media_server: MediaServer, set: bool = None, zone: Zone = Zone()
 ) -> bool:
-    """Get or set the mute mode.
+    """Get or set the mute state.
 
     set:     The boolean value representing the new mute state. Leave to None
              to return state only.
@@ -193,8 +193,23 @@ def playback_shuffle(
     return response["Mode"]
 
 
+def playback_loadDSPreset(media_server: MediaServer, name: str, zone: Zone = Zone()):
+    """ Loads a named DSP preset for the given zone
+
+    name:   Name of the preset to load
+    zone:   Target zone (optional)
+    """
+    payload = {"Name": name}
+    if zone is not None:
+        payload["Zone"] = zone.best_identifier()
+        payload["ZoneType"] = zone.best_identifier_type()
+    response = media_server.send_request("Playback/LoadDSPPreset", payload)
+    response.raise_for_status()
+    return
+
+
 #
-#   FILE
+#   FILES
 #
 
 
@@ -251,11 +266,6 @@ def file_get_image(
         return Image.open(BytesIO(response.content))
     else:
         return response
-
-
-#
-#   FILES
-#
 
 
 def files_search(
@@ -361,7 +371,7 @@ def escape_for_query(query_part: str) -> str:
     reserved characters in a natural string that will be used as a query fragment.
     This is usually the content of a field (e.g. an album or artist name).
     """
-    query_part = query_part.replace('"', '/"')  # replace " with /"
+    query_part = query_part.replace('"', '/"')
     query_part = query_part.replace("^", "/^")
     query_part = query_part.replace("[", "/[")
     query_part = query_part.replace("]", "/]")

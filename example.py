@@ -72,5 +72,8 @@ print("    Turning repeat off, new state: " + mcws.playback_shuffle(office, "Off
 print("Shuffle mode is: " + mcws.playback_shuffle(office))
 print("    Turning shuffle on, new state: " + mcws.playback_shuffle(office, "On"))
 print("    Reshuffling playlist: " + mcws.playback_shuffle(office, "Reshuffle"))
-
 mcws.playback_stop(office)
+
+# Loading a DSP Preset
+print("Loading DSP preset 'EQ Flat', probably not present on your box")
+mcws.playback_loadDSPreset(office, "EQ Flat")
