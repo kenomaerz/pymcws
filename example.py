@@ -1,5 +1,6 @@
 import pymcws as mcws
 import time
+from datetime import timedelta
 
 # Create the server using access key and credentials
 # Dont forget to replace the example key with one that you can reach
@@ -13,10 +14,25 @@ office = mcws.get_media_server("localhost", "readonly", "supersecretpassword")
 
 # Query files via query recipe
 files = mcws.query_album(office, "Ludovico Einaudi", "I Giorni")
-# files are dictionaries of tags. Tags are automatically converted to the correct type.
+# files are dictionaries of tags. Tags are automatically converted to the correct python type.
 print(files[0]["Date"])
 print(files[0]["Name"])
 print(files[0]["Duration"])
+
+# Editing tags is easy! Just edit the dict, and save the file afterwards
+# Files keep track of the changes that are made and only send relevant data
+# to the server. All data is escaped and converted automatically.
+files[0]["Name"] = "Test2,3,4"
+files[0]["Genre"] = ["Test Genre 3,7", "Test Genre 3,5", "Test Genre 6"]
+files[0]["Date"] += timedelta(years=10)
+files[0]["Rating"] = 4
+# You can check which fields have been changed
+print(files[0].changed_fields)
+# Finally, tell the server to persist the changes
+# next lines are commented out for safety
+# mcws.file_set_info(office, files[0])
+# If you don't want to persist all changes, filter the fields you want to edit:
+# mcws.file_set_info(office, files[0], {"Name", "Rating"})
 
 # Play an album using a play recipe. Replace this with one that you have
 print("Playing an Album")
@@ -31,7 +47,7 @@ print("Zones available at server:")
 for zone in zones:
     print("    ", zone.index, zone.id, zone.name, zone.guid, zone.is_dlna)
 
-# files_search lets execute arbitrary queriesPlayback using zones
+# files_search lets you execute arbitrary queries and playback (optionally using zones)
 mcws.files_search(office, query="[Artist]=[Sting]", action="Play", zone=zones[0])
 time.sleep(3)
 

@@ -13,6 +13,10 @@ URL_API = "http://{ip}:{port}/MCWS/v1/"
 
 logger = logging.getLogger(__name__)
 
+# JRiver dates are days since midnight 30th december 1899
+# See https://yabb.jriver.com/interact/index.php/topic,123431.0.html
+reference_date = datetime.strptime("30.12.1899", "%d.%m.%Y")
+
 
 class MediaServer:
     def __init__(self, key_id: str, user: str, password: str):
@@ -282,10 +286,10 @@ class Zone:
 def library_fields(self: MediaServer):
     """ Returns information about the library fields that this server can handle.
 
-        The result is a dictionary that contains the name of all known fields as 
+        The result is a dictionary that contains the name of all known fields as
         keys, and corresponding information as a dictionary with the keys:
-        'Name', 'DataType', 'EditType' (all as provided by MCWS) and 
-        'Decoder', a lambda function that can parse values fo this field to the 
+        'Name', 'DataType', 'EditType' (all as provided by MCWS) and
+        'Decoder', a lambda function that can parse values fo this field to the
         correct python type.
     """
 
@@ -299,12 +303,14 @@ def library_fields(self: MediaServer):
         "DataType": "Integer",
         "EditType": "Not editable",
         "Decoder": lambda x: int(x),
+        "Encoder": lambda x: str(x),
     }
     result["Date (readable)"] = {
         "Name": "Date (readable)",
         "DataType": "String",
         "EditType": "Not editable",
         "Decoder": lambda x: x,
+        "Encoder": lambda x: x,
     }
 
     root = ElementTree.fromstring(response.content)
@@ -328,18 +334,30 @@ def library_fields(self: MediaServer):
             or data_type == "Image File"
         ):
             result[name]["Decoder"] = lambda x: x
+            result[name]["Encoder"] = lambda x: '"' + x + '"'
         elif data_type == "Integer" or data_type == "File Size":
             result[name]["Decoder"] = lambda x: int(x)
+            result[name]["Encoder"] = lambda x: str(x)
         elif data_type == "Date (float)":
             result[name]["Decoder"] = lambda x: parse_jriver_date(x)
+            result[name]["Encoder"] = lambda x: serialize_jriver_date(x)
         elif data_type == "Date":
             result[name]["Decoder"] = lambda x: datetime.fromtimestamp(int(x))
+            result[name]["Encoder"] = lambda x: str(datetime.timestamp(x))
         elif data_type == "List":
             result[name]["Decoder"] = lambda x: x.split(";")
+            result[name]["Encoder"] = lambda x: '"' + ";".join(x) + '"'
         elif data_type == "Decimal" or data_type == "Percentage" or data_type == "Time":
             result[name]["Decoder"] = lambda x: float(x.replace(",", "."))
+            result[name]["Encoder"] = lambda x: str(x)
         else:
+            logger.warn(
+                "Unhandled data type found: "
+                + data_type
+                + ". Using identity to decode and encode."
+            )
             result[name]["Decoder"] = lambda x: x
+            result[name]["Encoder"] = lambda x: x
     return result
 
 
@@ -353,6 +371,13 @@ def parse_jriver_date(jriver_date) -> datetime:
     days = float(jriver_date)
     # JRiver returns days since midnight 30th december 1899, must convert
     # See https://yabb.jriver.com/interact/index.php/topic,123431.0.html
-    date = datetime.strptime("30.12.1899", "%d.%m.%Y")
-    date += timedelta(days=days)
-    return date
+    return reference_date + timedelta(days=days)
+
+
+def serialize_jriver_date(date: datetime) -> str:
+    """ Takes a jriver date float and turns it into a date object
+    """
+    if date is None:
+        return None
+    delta = date - reference_date
+    return str(delta.days)
