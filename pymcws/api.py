@@ -329,22 +329,131 @@ def file_set_info(
 #
 
 
+def library_list(media_server: MediaServer, include_header=False):
+    """ Returns a list of dictionaries containing the information of available libraries.
+
+    The index in the list of libraries is the library id.
+    This method diverges from the original API. Call library_get_default to get the default library.
+    Additionally, you can use library_get_loaded to only return the loaded library.
+    set the include_header flag to mimic original API behaviour and include a header index 0.
+    See http://localhost:52199/MCWS/v1/Library/List for example.
+    """
+    response = media_server.send_request("Library/List")
+    result = transform_semistructured_response(response, 2, "Library", 3)
+    result[0]["DefaultLibrary"] = int(result[0]["DefaultLibrary"])
+    result[0]["NumberOfLibraries"] = int(result[0]["NumberOfLibraries"])
+    i = 0
+    for library in result[1:]:
+        library["Loaded"] = library["Loaded"] == "1"
+        library["ID"] = i
+        i += 1
+    if not include_header:
+        result.pop(0)
+    return result
+
+
+def library_get_default(media_server: MediaServer):
+    """ Returns the information of the default library
+    """
+    libraries = library_list(media_server, True)
+    default_id = libraries[0]["DefaultLibrary"]
+    result = libraries[default_id + 1]
+    result["id"] = default_id
+    return result
+
+
+def library_get_loaded(media_server: MediaServer):
+    """ Returns the information of the currently library
+    """
+    libraries = library_list(media_server)
+    for library in libraries:
+        if library["Loaded"]:
+            return library
+    return None
+
+
 def library_values(
     media_server: MediaServer,
     filter: str = None,
     field: str = None,
-    files: str = None,
+    query: str = None,
     limit: str = None,
+    version: int = 2,
 ):
-    payload = {"Filter": filter, "Field": field, "Files": files, "Limit": limit}
+    """ Get a list of values from the database (artists, albums, etc.).
+
+        filter: None to get all values for a particular field, or some search to
+                get matching values from any number of fields.
+        field:  A comma-delimited list of fields as a string, or a list of strings 
+                to get values from (use None to search default fields).
+        query:  A search to use to get the files to retrieve values from (use empty
+                to use all imported files).
+        limit: Maximum number of values to return.
+        version: The version of the data used for results (2 is the newest version).
+
+    """
+    if isinstance(field, list):
+        field = ",".join(field)
+    payload = {
+        "Filter": filter,
+        "Field": field,
+        "Files": query,
+        "Limit": limit,
+        "Version": version,
+    }
     response = media_server.send_request("Library/Values", payload)
     response.raise_for_status()
     return transform_list_response(response)
 
 
+def library_create_file(media_server: MediaServer) -> File:
+    """ Creates a new file in the library. This file can then be populated with
+        tag data and saved. Don't forget to set media type so it actually appears
+        in JRiver.
+    """
+    response = media_server.send_request("Library/CreateFile")
+    result = transform_unstructured_response(response)
+    return File(media_server, result)
+
+
 #
 #   HELPER
 #
+
+
+def transform_semistructured_response(
+    response, header_items: int, group_prefix: str, group_size: int
+) -> list:
+    """Converts the relatively unstructured XML responses from MCWS into
+    a list of dictionaries that is easier to process. This method assumes that after a few
+    leading entries, a sequence of entries that share a common prefix repeat and
+    should be grouped as items. An example is the response from Library/List:
+    http://localhost:52199/MCWS/v1/Library/List
+
+    The result is a list, that at index 0 contains a dictionary containing the header items,
+    and afterwards dictionaries that contain the items.
+
+    Note: This method makes use of the fact that dictionaries return their entries in order since Python 3.6
+    """
+    result = []
+    items = list(transform_unstructured_response(response).items())
+    header = {}
+    for item in items[:header_items]:
+        header[item[0]] = item[1]
+    result.append(header)
+
+    items = items[header_items:]
+    chunks = [items[i : i + group_size] for i in range(0, len(items), group_size)]
+    i = 0
+    for chunk in chunks:
+        group = {}
+        for item in chunk:
+            key = item[0][len(group_prefix + str(i)) :]
+            if len(key) == 0:
+                key = group_prefix
+            group[key] = item[1]
+        result.append(group)
+    return result
 
 
 def transform_unstructured_response(response):
