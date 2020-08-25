@@ -4,8 +4,10 @@ from requests.exceptions import HTTPError
 import logging
 from xml.etree import ElementTree
 import urllib
-from datetime import datetime, timedelta
-from .exceptions import UnresolvableKeyError
+from datetime import datetime
+from pymcws.exceptions import UnresolvableKeyError
+from pymcws.server_mixins import Library, Playback, File, Files, Recipes
+from pymcws.api.library import fields as lib_fields
 
 
 URL_KEYLOOKUP = "http://webplay.jriver.com/libraryserver/lookup"
@@ -28,15 +30,26 @@ class MediaServer:
         self.user = user
         self.password = password
         self.con_strategy = "unknown"
-        self.fields = None
         self.session = requests.Session()
         self.session.auth = (user, password)
+        self.__fields = None
         if self.key_id == "localhost":
             self.local_ip_list = "127.0.0.1"
             self.local_ip = "127.0.0.1"
             self.port = "52199"
             self.con_strategy = "local"
-            self.fields = library_fields(self)
+
+    @property
+    def fields(self, update: bool = False):
+        """ Contains the fields available on this server and their definitions.
+
+            This is loaded lazily and chached in the server for type conversion
+            in order to avoid unnecessary queries to the server. To update the
+            cache, call this function with update = True.
+        """
+        if self.__fields is None or update:
+            self.__fields = lib_fields(self)
+        return self.__fields
 
     def __str__(self):
         return "Server " + self.key_id + " at " + self.address()
@@ -72,7 +85,6 @@ class MediaServer:
                 logger.debug(
                     "Access key '" + self.key_id + "': con_strategy set to 'local'."
                 )
-                self.fields = library_fields(self)
                 return True
             else:
                 self.con_strategy = "unknown"
@@ -94,7 +106,6 @@ class MediaServer:
             logger.debug(
                 "Access key '" + self.key_id + "': con_strategy set to 'local'."
             )
-            self.fields = library_fields(self)
             return True
         # 4) Test if remote ip is reachable
         if self.test_remote():
@@ -102,7 +113,6 @@ class MediaServer:
             logger.debug(
                 "Access key '" + self.key_id + "': con_strategy set to 'remote'."
             )
-            self.fields = library_fields(self)
             return True
         # 5) Machine behind key is unreachable
         return False
@@ -181,13 +191,22 @@ class MediaServer:
         self.local_ip_list = et.find("localiplist").text.split(",")
         self.remote_ip = et.find("ip").text
         self.http_port = et.find("port").text
-        self.https_port = et.find("https_port").text
+        self.https_port = et.find("https_port")
+        if self.https_port is not None:
+            self.https_port = self.https_port.text
         self.mac_address_list = et.find("macaddresslist").text.split(",")
         self.last_connection = datetime.now()
 
     def send_request(self, extension: str, payload=None):
         if self.con_strategy == "unknown":
             self.refresh()
+
+        # Clean None values from payload
+        if payload is not None:
+            for entry in list(payload.items()):
+                if entry[1] is None:
+                    payload.pop(entry[0])
+
         try:
             return self.attempt_request(extension, payload)
         except HTTPError:
@@ -224,135 +243,11 @@ class MediaServer:
         return r
 
 
-class Zone:
-    """Zones represent targets for playback-related commands.
-
-    Zones are available on a per-server basis and can be retrieved for each
-    using MCWS. If you know the id or name of the zone that you want to target,
-    you can also create a zone and set id, index or name manually. The missing
-    fields do not affect functionality, the best available value is retrieved
-    automatically.
-    """
-
-    def __init__(self):
-        self.id = -1  # Default ID indicating the zone currently selected in MC
-        self.index = None
-        self.name = None
-        self.guid = None
-        self.is_dlna = None
-
-    def best_identifier(self):
-        """Checks available fields and retirves the best available.
-
-        Use best_identifier_type() to find out what type of identifier was
-        returned.
-        """
-        if self.id is not None:
-            return self.id
-        if self.name is not None:
-            return self.name
-        if self.index is not None:
-            return self.index
-        logger.warn(
-            "Unable to determine best identifier "
-            + " for Zone. This is probably a bug."
-        )
-
-    def best_identifier_type(self):
-        """ Returns the type of the best identifier.
-
-        Used in conjunction with best_identifier() to automatically determine
-        the best strategy to communicate zones to the MCWS API.
-        """
-        if self.id is not None:
-            return "ID"
-        if self.name is not None:
-            return "Name"
-        if self.index is not None:
-            return "Index"
-        logger.warn(
-            "Unable to determine best identifier type"
-            + " for Zone. This is probably a bug."
-        )
-
-    def __str__(self):
-        return self.name
-
-
-def library_fields(self: MediaServer):
-    """ Returns information about the library fields that this server can handle.
-
-        The result is a dictionary that contains the name of all known fields as 
-        keys, and corresponding information as a dictionary with the keys:
-        'Name', 'DataType', 'EditType' (all as provided by MCWS) and 
-        'Decoder', a lambda function that can parse values fo this field to the 
-        correct python type.
-    """
-
-    response = self.send_request("Library/Fields", {})
-    response.raise_for_status()
-    result = {}
-
-    # Some fields are not reported by the library fields function
-    result["Key"] = {
-        "Name": "Key",
-        "DataType": "Integer",
-        "EditType": "Not editable",
-        "Decoder": lambda x: int(x),
-    }
-    result["Date (readable)"] = {
-        "Name": "Date (readable)",
-        "DataType": "String",
-        "EditType": "Not editable",
-        "Decoder": lambda x: x,
-    }
-
-    root = ElementTree.fromstring(response.content)
-    for item in root:
-        name = item.attrib["Name"]
-        data_type = item.attrib["DataType"]
-        result[name] = {
-            "Name": name,
-            "DataType": data_type,
-            "EditType": item.attrib["EditType"],
-        }
-
-        expression = item.attrib.get("Expression", None)
-        if expression is not None:
-            result[name]["Expression"] = expression
-
-        if (
-            data_type == "String"
-            or data_type == "Path"
-            or data_type == "User"
-            or data_type == "Image File"
-        ):
-            result[name]["Decoder"] = lambda x: x
-        elif data_type == "Integer" or data_type == "File Size":
-            result[name]["Decoder"] = lambda x: int(x)
-        elif data_type == "Date (float)":
-            result[name]["Decoder"] = lambda x: parse_jriver_date(x)
-        elif data_type == "Date":
-            result[name]["Decoder"] = lambda x: datetime.fromtimestamp(int(x))
-        elif data_type == "List":
-            result[name]["Decoder"] = lambda x: x.split(";")
-        elif data_type == "Decimal" or data_type == "Percentage" or data_type == "Time":
-            result[name]["Decoder"] = lambda x: float(x.replace(",", "."))
-        else:
-            result[name]["Decoder"] = lambda x: x
-    return result
-
-
-def parse_jriver_date(jriver_date) -> datetime:
-    """ Takes a jriver date float and turns it into a date object
-    """
-    if jriver_date is None:
-        return None
-    # Handle locale if necessary
-    jriver_date = jriver_date.replace(",", ".")
-    days = float(jriver_date)
-    # JRiver returns days since midnight 30th december 1899, must convert
-    # See https://yabb.jriver.com/interact/index.php/topic,123431.0.html
-    date = datetime.strptime("30.12.1899", "%d.%m.%Y")
-    date += timedelta(days=days)
-    return date
+class ApiMediaServer(MediaServer):
+    def __init__(self, key_id: str, user: str, password: str):
+        super().__init__(key_id, user, password)
+        self.library = Library(self)
+        self.playback = Playback(self)
+        self.file = File(self)
+        self.files = Files(self)
+        self.recipes = Recipes(self)

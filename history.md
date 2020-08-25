@@ -1,5 +1,12 @@
 # Version History
 
+### v1.0.0
+* Major rewrite of pymcws that fixes everything I started to dislike about the structure.
+* Usage is more intuitive now, see Readme.md and example.py for details.
+* Editing and saving files is now possible.
+* Several additional endpoints implemented.
+* Finally added tests.
+
 ### v0.2.2
 * Implemented playback_loadDSPPreset based on https://github.com/kenomaerz/pymcws/issues/6.
 
