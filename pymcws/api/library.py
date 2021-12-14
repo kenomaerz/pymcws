@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_list(media_server, include_header=False):
-    """ Returns a list of dictionaries containing the information of available libraries.
+    """Returns a list of dictionaries containing the information of available libraries.
 
     The index in the list of libraries is the library id.
     This method diverges from the original API. Call library_get_default to get the default library.
@@ -37,8 +37,7 @@ def get_list(media_server, include_header=False):
 
 
 def get_default(media_server):
-    """ Returns the information of the default library
-    """
+    """Returns the information of the default library"""
     libraries = get_list(media_server, True)
     default_id = libraries[0]["DefaultLibrary"]
     result = libraries[default_id + 1]
@@ -47,8 +46,7 @@ def get_default(media_server):
 
 
 def get_loaded(media_server):
-    """ Returns the information of the currently library
-    """
+    """Returns the information of the currently library"""
     libraries = get_list(media_server)
     for library in libraries:
         if library["Loaded"]:
@@ -57,13 +55,13 @@ def get_loaded(media_server):
 
 
 def fields(media_server):
-    """ Returns information about the library fields that this server can handle.
+    """Returns information about the library fields that this server can handle.
 
-        The result is a dictionary that contains the name of all known fields as
-        keys, and corresponding information as a dictionary with the keys:
-        'Name', 'DataType', 'EditType' (all as provided by MCWS) and
-        'Decoder', a lambda function that can parse values fo this field to the
-        correct python type.
+    The result is a dictionary that contains the name of all known fields as
+    keys, and corresponding information as a dictionary with the keys:
+    'Name', 'DataType', 'EditType' (all as provided by MCWS) and
+    'Decoder', a lambda function that can parse values fo this field to the
+    correct python type.
     """
 
     response = media_server.send_request("Library/Fields", {})
@@ -136,6 +134,17 @@ def fields(media_server):
     return result
 
 
+def create_field(
+    media_server,
+):
+    """Returns the information of the currently library"""
+    libraries = get_list(media_server)
+    for library in libraries:
+        if library["Loaded"]:
+            return library
+    return None
+
+
 def values(
     media_server,
     filter: str = None,
@@ -144,16 +153,16 @@ def values(
     limit: str = None,
     version: int = 2,
 ):
-    """ Get a list of values from the database (artists, albums, etc.).
+    """Get a list of values from the database (artists, albums, etc.).
 
-        filter: None to get all values for a particular field, or some search to
-                get matching values from any number of fields.
-        field:  A comma-delimited list of fields as a string, or a list of strings
-                to get values from (use None to search default fields).
-        query:  A search to use to get the files to retrieve values from (use empty
-                to use all imported files).
-        limit: Maximum number of values to return.
-        version: The version of the data used for results (2 is the newest version).
+    filter: None to get all values for a particular field, or some search to
+            get matching values from any number of fields.
+    field:  A comma-delimited list of fields as a string, or a list of strings
+            to get values from (use None to search default fields).
+    query:  A search to use to get the files to retrieve values from (use empty
+            to use all imported files).
+    limit: Maximum number of values to return.
+    version: The version of the data used for results (2 is the newest version).
 
     """
     if isinstance(field, list):
@@ -171,9 +180,9 @@ def values(
 
 
 def create_file(media_server) -> MediaFile:
-    """ Creates a new file in the library. This file can then be populated with
-        tag data and saved. Don't forget to set media type so it actually appears
-        in JRiver.
+    """Creates a new file in the library. This file can then be populated with
+    tag data and saved. Don't forget to set media type so it actually appears
+    in JRiver.
     """
     response = media_server.send_request("Library/CreateFile")
     result = transform_unstructured_response(response)
