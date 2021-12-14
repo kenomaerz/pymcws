@@ -128,9 +128,10 @@ def parse_jriver_date(jriver_date) -> datetime:
 
 
 def serialize_jriver_date(date: datetime) -> str:
-    """ Takes a jriver date float and turns it into a date object
+    """ Takes a datetime object and translates it to a jriver-compatible date format
     """
     if date is None:
         return None
     delta = date - reference_date
-    return str(delta.days)
+    seconds = date.hour * 60 * 60 + date.minute * 60 + date.second
+    return str(delta.days + (seconds / float(24 * 60 * 60)))
