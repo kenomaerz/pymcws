@@ -1,11 +1,16 @@
 # Version History
 
+### v1.1.0
+* Upgraded to Python 3.9 and improved type hinting.
+* Added files.playback() to retrieve current playlist from zones based on https://github.com/kenomaerz/pymcws/issues/7.
+* Added library.create_fields() to create new fields. However, MCWS currently fails to execute the request, see https://yabb.jriver.com/interact/index.php/topic,131470.0.html
+
 ### v1.0.0
 * Major rewrite of pymcws that fixes everything I started to dislike about the structure.
 * Usage is more intuitive now, see Readme.md and example.py for details.
 * Editing and saving files is now possible.
 * Several additional endpoints implemented.
-* Finally added tests.
+* Finally added tests. Please read the documentation carefully if you intend to run them. They can destroy your library.
 
 ### v0.2.2
 * Implemented playback_loadDSPPreset based on https://github.com/kenomaerz/pymcws/issues/6.

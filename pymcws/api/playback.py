@@ -1,4 +1,4 @@
-from pymcws.model import Zone
+from pymcws.model import Zone, MediaFile
 from pymcws.utils import (
     transform_unstructured_response,
     serialize_file_list,
@@ -223,6 +223,9 @@ def playlist(
     no_ui: bool = False,
     zone: Zone = Zone(),
 ):
+    """Returns the playlist of the given zone. Allows to return them as MediaFile object using the action='MPL',
+    or storing them as a playlist.
+    """
     payload = {
         "Action": action,
         "ActiveFile": active_file,
@@ -249,7 +252,10 @@ def playlist(
 
 
 def set_playlist(
-    media_server, files: list, zone: Zone = Zone(), active_item_index: int = -1
+    media_server,
+    files: list[MediaFile],
+    zone: Zone = Zone(),
+    active_item_index: int = -1,
 ):
     """Sets the given files as the playlist for the given zone."""
     # fix param if someone passes a single file
