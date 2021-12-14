@@ -10,7 +10,7 @@ def play_album(
     album_artist: str,
     album: str,
     shuffle_album: bool = False,
-    use_play_doctor: bool = False,
+    play_doctor: bool = False,
     repeat_album: bool = False,
     zone: Zone = None,
 ):
@@ -37,7 +37,7 @@ def play_album(
         query,
         "play",
         shuffle=shuffle_album,
-        use_play_doctor=use_play_doctor,
+        play_doctor=play_doctor,
         zone=zone,
     )
     response.raise_for_status()
@@ -49,7 +49,7 @@ def play_album(
 def play_keyword(
     media_server,
     keyword: str,
-    use_play_doctor: bool = False,
+    play_doctor: bool = False,
     shuffle_list: bool = True,
     zone: Zone = None,
 ):
@@ -61,7 +61,7 @@ def play_keyword(
         media_server,
         query,
         "play",
-        use_play_doctor=use_play_doctor,
+        play_doctor=play_doctor,
         shuffle=shuffle_list,
         zone=zone,
     )

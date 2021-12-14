@@ -24,7 +24,7 @@ print(files[0]["Duration"])
 # to the server. All data is escaped and converted automatically.
 files[0]["Name"] = "Test2,3,4"
 files[0]["Genre"] = ["Test Genre 3,7", "Test Genre 3,5", "Test Genre 6"]
-files[0]["Date"] += timedelta(years=10)
+files[0]["Date"] += timedelta(days=365)
 files[0]["Rating"] = 4
 # You can check which fields have been changed
 print(files[0].changed_fields)

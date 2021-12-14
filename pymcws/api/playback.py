@@ -1,5 +1,9 @@
 from pymcws.model import Zone
-from pymcws.utils import transform_unstructured_response, serialize_file_list
+from pymcws.utils import (
+    transform_unstructured_response,
+    serialize_file_list,
+    transform_mpl_response,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -74,7 +78,10 @@ def zones(media_server, see_hidden: bool = False):
 
 
 def position(
-    media_server, position: int = None, relative: int = None, zone: Zone = Zone(),
+    media_server,
+    position: int = None,
+    relative: int = None,
+    zone: Zone = Zone(),
 ) -> int:
     """Get or set the playback position.
 
@@ -158,7 +165,7 @@ def repeat(media_server, mode: str = None, zone: Zone = Zone()) -> str:
     zone:    Target zone for the command.
     returns: The repeat state after changes took effect.
     """
-    if mode == False:
+    if mode is False:
         mode = "Off"
     payload = {"Mode": mode}
     if zone is not None:
@@ -188,7 +195,7 @@ def shuffle(media_server, mode: str = None, zone: Zone = Zone()) -> str:
 
 
 def info(media_server, zone: Zone = Zone()):
-    """ Returns general information on playback at the given zone.
+    """Returns general information on playback at the given zone.
     zone:    Target zone for the command.
     returns: A dictionary with information on the playback state.
     """
@@ -204,8 +211,7 @@ def info(media_server, zone: Zone = Zone()):
 def set_playlist(
     media_server, files: list, zone: Zone = Zone(), active_item_index: int = -1
 ):
-    """ Sets the given files as the playlist for the given zone.
-    """
+    """Sets the given files as the playlist for the given zone."""
     # fix param if someone passes a single file
     if isinstance(files, dict):
         files = [files]
@@ -230,7 +236,7 @@ def set_playlist(
 
 
 def loadDSPreset(media_server, name: str, zone: Zone = Zone()):
-    """ Loads a named DSP preset for the given zone
+    """Loads a named DSP preset for the given zone
 
     name:   Name of the preset to load
     zone:   Target zone (optional)
