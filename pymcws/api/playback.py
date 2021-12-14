@@ -1,5 +1,9 @@
-from pymcws.model import Zone
-from pymcws.utils import transform_unstructured_response, serialize_file_list
+from pymcws.model import Zone, MediaFile
+from pymcws.utils import (
+    transform_unstructured_response,
+    serialize_file_list,
+    transform_mpl_response,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -74,7 +78,10 @@ def zones(media_server, see_hidden: bool = False):
 
 
 def position(
-    media_server, position: int = None, relative: int = None, zone: Zone = Zone(),
+    media_server,
+    position: int = None,
+    relative: int = None,
+    zone: Zone = Zone(),
 ) -> int:
     """Get or set the playback position.
 
@@ -158,7 +165,7 @@ def repeat(media_server, mode: str = None, zone: Zone = Zone()) -> str:
     zone:    Target zone for the command.
     returns: The repeat state after changes took effect.
     """
-    if mode == False:
+    if mode is False:
         mode = "Off"
     payload = {"Mode": mode}
     if zone is not None:
@@ -188,7 +195,7 @@ def shuffle(media_server, mode: str = None, zone: Zone = Zone()) -> str:
 
 
 def info(media_server, zone: Zone = Zone()):
-    """ Returns general information on playback at the given zone.
+    """Returns general information on playback at the given zone.
     zone:    Target zone for the command.
     returns: A dictionary with information on the playback state.
     """
@@ -201,11 +208,56 @@ def info(media_server, zone: Zone = Zone()):
     return transform_unstructured_response(response, try_int_cast=True)
 
 
-def set_playlist(
-    media_server, files: list, zone: Zone = Zone(), active_item_index: int = -1
+def playlist(
+    media_server,
+    action: str,
+    shuffle: bool = False,
+    active_file: int = -1,
+    active_file_only: bool = False,
+    play_mode: str = None,
+    fields: list[str] = None,
+    no_local_filenames: bool = False,
+    play_doctor: bool = False,
+    save_mode: str = None,
+    save_name: str = None,
+    no_ui: bool = False,
+    zone: Zone = Zone(),
 ):
-    """ Sets the given files as the playlist for the given zone.
+    """Returns the playlist of the given zone. Allows to return them as MediaFile object using the action='MPL',
+    or storing them as a playlist.
     """
+    payload = {
+        "Action": action,
+        "ActiveFile": active_file,
+        "PlayMode": play_mode,
+        "SaveMode": save_mode,
+        "SaveName": save_name,
+    }
+    payload["Shuffle"] = "1" if shuffle else "0"
+    payload["ActiveFileOnly"] = "1" if active_file_only else "0"
+    payload["NoLocalFilenames"] = "1" if no_local_filenames else "0"
+    payload["PlayDoctor"] = "1" if play_doctor else "0"
+    payload["NoUI"] = "1" if no_ui else "0"
+    if fields is not None:
+        fields = ",".join(fields)
+        payload["Fields"] = fields
+    if zone is not None:
+        payload["Zone"] = zone.best_identifier()
+        payload["ZoneType"] = zone.best_identifier_type()
+    response = media_server.send_request("Playback/Playlist", payload)
+    if action != "MPL":
+        return response
+    else:
+        return transform_mpl_response(media_server, response)
+
+
+def set_playlist(
+    media_server,
+    files: list[MediaFile],
+    zone: Zone = Zone(),
+    active_item_index: int = -1,
+):
+    """Sets the given files as the playlist for the given zone."""
     # fix param if someone passes a single file
     if isinstance(files, dict):
         files = [files]
@@ -230,7 +282,7 @@ def set_playlist(
 
 
 def loadDSPreset(media_server, name: str, zone: Zone = Zone()):
-    """ Loads a named DSP preset for the given zone
+    """Loads a named DSP preset for the given zone
 
     name:   Name of the preset to load
     zone:   Target zone (optional)

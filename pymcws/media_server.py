@@ -41,11 +41,11 @@ class MediaServer:
 
     @property
     def fields(self, update: bool = False):
-        """ Contains the fields available on this server and their definitions.
+        """Contains the fields available on this server and their definitions.
 
-            This is loaded lazily and chached in the server for type conversion
-            in order to avoid unnecessary queries to the server. To update the
-            cache, call this function with update = True.
+        This is loaded lazily and chached in the server for type conversion
+        in order to avoid unnecessary queries to the server. To update the
+        cache, call this function with update = True.
         """
         if self.__fields is None or update:
             self.__fields = lib_fields(self)
@@ -55,7 +55,7 @@ class MediaServer:
         return "Server " + self.key_id + " at " + self.address()
 
     def credentials(self) -> HTTPBasicAuth:
-        """ Retrieves the credentials for this instance in form of a
+        """Retrieves the credentials for this instance in form of a
         HTTPBasicAuth object
         """
         if self.user is None or self.password is None:
@@ -64,7 +64,7 @@ class MediaServer:
             return HTTPBasicAuth(self.user, self.password)
 
     def refresh(self) -> bool:
-        """ Identifies the best way to connect to the machine behind the key,
+        """Identifies the best way to connect to the machine behind the key,
         querying data from jriver web service if necessary.
         Returns true if successful and false otherwise.
 
@@ -118,8 +118,8 @@ class MediaServer:
         return False
 
     def address(self):
-        """ Returns the address of the mediaserver with regard to the currently chosen
-            connection strategy. If no strategy was selected, None is returned.
+        """Returns the address of the mediaserver with regard to the currently chosen
+        connection strategy. If no strategy was selected, None is returned.
         """
         if self.con_strategy == "local":
             return self.address_local()
@@ -128,21 +128,21 @@ class MediaServer:
         return None
 
     def address_local(self):
-        """ Returns the local address of the server.
+        """Returns the local address of the server.
 
-            This method requires that exactly one local_ip is set.
-            Call test_local to test which ip from the local_ip_list is working
-            and set it automatically.
+        This method requires that exactly one local_ip is set.
+        Call test_local to test which ip from the local_ip_list is working
+        and set it automatically.
         """
         if self.local_ip is None or self.port is None:
             return None
         return URL_API.format(ip=self.local_ip, port=self.port)
 
     def address_remote(self):
-        """ Returns the remote address of the server.
+        """Returns the remote address of the server.
 
-            Assuming that the server is configured correctly and reachable,
-            this address should always work.
+        Assuming that the server is configured correctly and reachable,
+        this address should always work.
         """
         if self.remote_ip is None or self.port is None:
             return None
@@ -172,7 +172,7 @@ class MediaServer:
         return False
 
     def update_from_jriver(self):
-        """ Contacts the JRiver WebService to retrieve information about the access key.
+        """Contacts the JRiver WebService to retrieve information about the access key.
 
         Updates the local instance with current data. This usually is called
         automatically in the refresh method and should not usually need to be called

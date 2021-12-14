@@ -60,8 +60,7 @@ def transform_unstructured_response(response, try_int_cast: bool = False):
 
 
 def transform_list_response(response):
-    """ Transforms a response containing a list of items into a list of strings.
-    """
+    """Transforms a response containing a list of items into a list of strings."""
     result = []
     root = ElementTree.fromstring(response.content)
     for item in root:
@@ -70,7 +69,7 @@ def transform_list_response(response):
 
 
 def transform_mpl_response(media_server, response):
-    """ Transforms an MPL response into a list of dictionaries.
+    """Transforms an MPL response into a list of dictionaries.
 
     Each dictionary represents one file and contains the fields as keys.
     """
@@ -100,13 +99,13 @@ def escape_for_query(query_part: str) -> str:
 
 
 def serialize_file_list(files: list, active_item_index: int = -1):
-    """ Returns a serialized file list, which JRiver requires in some API calls.
-        These are a not documented further, but form a string of comma seperated values.
-        These are, in order:
-        [0] The value '2', stating a serialization version. Only 2 is supported these days.
-        [1] The number of included keys
-        [2] The active element (?), -1 for none
-        [3]..[len(files + 3)]: The keys of the files.
+    """Returns a serialized file list, which JRiver requires in some API calls.
+    These are a not documented further, but form a string of comma seperated values.
+    These are, in order:
+    [0] The value '2', stating a serialization version. Only 2 is supported these days.
+    [1] The number of included keys
+    [2] The active element (?), -1 for none
+    [3]..[len(files + 3)]: The keys of the files.
     """
     result = "2;" + str(len(files)) + ";" + str(active_item_index)
     for file in files:
@@ -115,8 +114,7 @@ def serialize_file_list(files: list, active_item_index: int = -1):
 
 
 def parse_jriver_date(jriver_date) -> datetime:
-    """ Takes a jriver date float and turns it into a date object
-    """
+    """Takes a jriver date float and turns it into a date object"""
     if jriver_date is None:
         return None
     # Handle locale if necessary
@@ -128,9 +126,9 @@ def parse_jriver_date(jriver_date) -> datetime:
 
 
 def serialize_jriver_date(date: datetime) -> str:
-    """ Takes a jriver date float and turns it into a date object
-    """
+    """Takes a datetime object and translates it to a jriver-compatible date format"""
     if date is None:
         return None
     delta = date - reference_date
-    return str(delta.days)
+    seconds = date.hour * 60 * 60 + date.minute * 60 + date.second
+    return str(delta.days + (seconds / float(24 * 60 * 60)))
