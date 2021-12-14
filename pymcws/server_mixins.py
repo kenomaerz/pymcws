@@ -24,6 +24,7 @@ class Library(MediaServerDummy):
         create_file,
         get_default,
         get_list,
+        create_field,
         fields,
         get_loaded,
     )

@@ -60,15 +60,16 @@ def fields(media_server):
     The result is a dictionary that contains the name of all known fields as
     keys, and corresponding information as a dictionary with the keys:
     'Name', 'DataType', 'EditType' (all as provided by MCWS) and
-    'Decoder', a lambda function that can parse values fo this field to the
-    correct python type.
+    'Decoder' and 'Encoder', two lambda functions that can convert values for this field
+    between the jriver type and the correct python type. Decoding and encoding is done
+    automatically, so you only need to bother with these in special cases.
     """
 
     response = media_server.send_request("Library/Fields", {})
     response.raise_for_status()
     result = {}
 
-    # Some fields are not reported by the library fields function
+    # Some fields are not reported by the library fields function, so they are added manually.
     result["Key"] = {
         "Name": "Key",
         "DataType": "Integer",
@@ -123,9 +124,9 @@ def fields(media_server):
             result[name]["Encoder"] = lambda x: str(x)
         else:
             logger.warning(
-                "Unhandled data type for field '"
+                "Unhandled data type found for field '"
                 + name
-                + "' found: "
+                + "': "
                 + data_type
                 + ". Using identity to decode and encode."
             )
@@ -134,15 +135,17 @@ def fields(media_server):
     return result
 
 
-def create_field(
-    media_server,
-):
+def create_field(media_server, name: str, type: str = "string", expression: str = None):
     """Returns the information of the currently library"""
-    libraries = get_list(media_server)
-    for library in libraries:
-        if library["Loaded"]:
-            return library
-    return None
+    payload = {
+        "Name": name,
+        "Type": type,
+    }
+    if expression:
+        payload["Expression"] = expression
+    response = media_server.send_request("Library/CreateField", payload)
+    response.raise_for_status()
+    return response.text
 
 
 def values(

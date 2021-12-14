@@ -223,6 +223,9 @@ def playlist(
     no_ui: bool = False,
     zone: Zone = Zone(),
 ):
+    """Returns the playlist of the given zone. Allows to return them as MediaFile object using the action='MPL',
+    or storing them as a playlist.
+    """
     payload = {
         "Action": action,
         "ActiveFile": active_file,
