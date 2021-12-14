@@ -30,9 +30,9 @@ files[0]["Rating"] = 4
 print(files[0].changed_fields)
 # Finally, tell the server to persist the changes
 # next lines are commented out for safety
-# mcws.file_set_info(office, files[0])
+# mcws.file.set_info(office, files[0])
 # If you don't want to persist all changes, filter the fields you want to edit:
-# mcws.file_set_info(office, files[0], {"Name", "Rating"})
+# mcws.file.set_info(office, files[0], {"Name", "Rating"})
 
 # Play an album using a play recipe. Replace this with one that you have
 print("Playing an Album")
@@ -46,6 +46,12 @@ zones = mcws.playback.zones(office)
 print("Zones available at server:")
 for zone in zones:
     print("    ", zone.index, zone.id, zone.name, zone.guid, zone.is_dlna)
+
+# print the playlist of the default zone
+playlist = mcws.playback.playlist(office, "MPL", fields=["Name", "Artist"])
+print("Currently playing:")
+for item in playlist:
+    print("    ", item["Artist"], " - ", item["Name"])
 
 # files_search lets you execute arbitrary queries and playback (optionally using zones)
 files_sting = mcws.files.search(

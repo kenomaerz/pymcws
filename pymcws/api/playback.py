@@ -208,6 +208,46 @@ def info(media_server, zone: Zone = Zone()):
     return transform_unstructured_response(response, try_int_cast=True)
 
 
+def playlist(
+    media_server,
+    action: str,
+    shuffle: bool = False,
+    active_file: int = -1,
+    active_file_only: bool = False,
+    play_mode: str = None,
+    fields: list[str] = None,
+    no_local_filenames: bool = False,
+    play_doctor: bool = False,
+    save_mode: str = None,
+    save_name: str = None,
+    no_ui: bool = False,
+    zone: Zone = Zone(),
+):
+    payload = {
+        "Action": action,
+        "ActiveFile": active_file,
+        "PlayMode": play_mode,
+        "SaveMode": save_mode,
+        "SaveName": save_name,
+    }
+    payload["Shuffle"] = "1" if shuffle else "0"
+    payload["ActiveFileOnly"] = "1" if active_file_only else "0"
+    payload["NoLocalFilenames"] = "1" if no_local_filenames else "0"
+    payload["PlayDoctor"] = "1" if play_doctor else "0"
+    payload["NoUI"] = "1" if no_ui else "0"
+    if fields is not None:
+        fields = ",".join(fields)
+        payload["Fields"] = fields
+    if zone is not None:
+        payload["Zone"] = zone.best_identifier()
+        payload["ZoneType"] = zone.best_identifier_type()
+    response = media_server.send_request("Playback/Playlist", payload)
+    if action != "MPL":
+        return response
+    else:
+        return transform_mpl_response(media_server, response)
+
+
 def set_playlist(
     media_server, files: list, zone: Zone = Zone(), active_item_index: int = -1
 ):
