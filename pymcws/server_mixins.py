@@ -46,6 +46,7 @@ class Playback(MediaServerDummy):
         stopall,
         volume,
         info,
+        playlist,
         set_playlist,
         zones,
     )
