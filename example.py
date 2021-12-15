@@ -55,7 +55,7 @@ for zone in zones:
     print("    ", zone.index, zone.id, zone.name, zone.guid, zone.is_dlna)
 
 # print the playlist of the default zone
-playlist = office.playback.playlist("MPL", fields=["Name", "Artist"])
+playlist = office.playback.playlist(fields=["Name", "Artist"])
 print("Currently playing:")
 for item in playlist:
     print("    ", item["Artist"], " - ", item["Name"])
