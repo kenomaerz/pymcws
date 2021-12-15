@@ -70,7 +70,7 @@ def get_image(
 def search(
     media_server,
     query: str,
-    action: str,
+    action: str = "MPL",
     fields: list[str] = None,
     play_doctor: bool = False,
     shuffle: bool = False,

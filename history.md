@@ -1,6 +1,9 @@
 # Version History
 
 ### v1.1.0
+* Added sensible default behaviour to library.playlist() and files.search(). Both will now return lists of MediaFiles by default.
+
+### v1.0.1
 * Upgraded to Python 3.9 and improved type hinting.
 * Added files.playback() to retrieve current playlist from zones based on https://github.com/kenomaerz/pymcws/issues/7.
 * Added library.create_fields() to create new fields. However, MCWS currently fails to execute the request, see https://yabb.jriver.com/interact/index.php/topic,131470.0.html
