@@ -210,7 +210,7 @@ def info(media_server, zone: Zone = Zone()):
 
 def playlist(
     media_server,
-    action: str,
+    action: str = "MPL",
     shuffle: bool = False,
     active_file: int = -1,
     active_file_only: bool = False,
